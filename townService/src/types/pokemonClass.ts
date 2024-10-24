@@ -71,4 +71,8 @@ export default class pokemonClass {
   public setPokemonCurrentHealth(health: number) {
     this.pokemonCurrentHealth = health;
   }
+
+  public takeDamage(Damage: number) {
+    this.pokemonCurrentHealth -= Damage;
+  }
 }
