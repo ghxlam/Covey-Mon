@@ -1,3 +1,5 @@
+import exp from "constants";
+
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
@@ -17,7 +19,12 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea;
+export type Interactable = ViewingArea | ConversationArea | GameArea;
+export interface GaneArea {
+    type: Interactable;
+    id: InteractableID;
+    occupants: PlayerID[];
+}
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -25,8 +32,10 @@ export type TownSettingsUpdate = {
 }
 
 export type Direction = 'front' | 'back' | 'left' | 'right';
+
+export type PlayerID = string;
 export interface Player {
-  id: string;
+  id: PlayerID;
   userName: string;
   location: PlayerLocation;
 };
