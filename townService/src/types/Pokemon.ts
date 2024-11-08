@@ -1,4 +1,4 @@
-export default class pokemonClass {
+export default class Pokemon {
   public pokemonName: string;
 
   public pokemonType: string[];

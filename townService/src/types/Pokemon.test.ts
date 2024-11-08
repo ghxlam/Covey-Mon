@@ -1,13 +1,13 @@
-import PokemonClass from './pokemonClass';
+import Pokemon from './Pokemon';
 
-describe('PokemonClass', () => {
-  let pokemon: PokemonClass;
-  let pokemon2: PokemonClass;
+describe('Pokemon', () => {
+  let pokemon: Pokemon;
+  let pokemon2: Pokemon;
 
   beforeEach(() => {
     // Setting up a test Pokemon object before each test
-    pokemon = new PokemonClass('Pikachu', ['Electric'], 100, 100, 90, 40, 55); // name, type, max health, current health, speed, defense, attack
-    pokemon2 = new PokemonClass('Bulbasaur', ['Grass', 'Poison'], 95, 0, 112, 35, 60);
+    pokemon = new Pokemon('Pikachu', ['Electric'], 100, 100, 90, 40, 55); // name, type, max health, current health, speed, defense, attack
+    pokemon2 = new Pokemon('Bulbasaur', ['Grass', 'Poison'], 95, 0, 112, 35, 60);
   });
 
   describe('creates a pokemon', () => {
