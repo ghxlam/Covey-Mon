@@ -33,31 +33,31 @@ export default class Pokemon {
     this.pokemonAttack = attack;
   }
 
-  public getPokemonName(): string {
+  public getName(): string {
     return this.pokemonName;
   }
 
-  public getPokemonType(): string[] {
+  public getType(): string[] {
     return this.pokemonType;
   }
 
-  public getPokemonMaxHealth(): number {
+  public getMaxHealth(): number {
     return this._pokemonMaxHealth;
   }
 
-  public getPokemonCurrentHealth(): number {
+  public getCurrentHealth(): number {
     return this.pokemonCurrentHealth;
   }
 
-  public getPokemonSpeed(): number {
+  public getSpeed(): number {
     return this.pokemonSpeed;
   }
 
-  public getPokemonDefense(): number {
+  public getDefense(): number {
     return this.pokemonDefense;
   }
 
-  public getPokemonAttack(): number {
+  public getAttack(): number {
     return this.pokemonAttack;
   }
 
@@ -68,7 +68,7 @@ export default class Pokemon {
     return false;
   }
 
-  public setPokemonCurrentHealth(health: number) {
+  public setCurrentHealth(health: number) {
     this.pokemonCurrentHealth = health;
   }
 

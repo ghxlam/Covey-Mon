@@ -12,17 +12,17 @@ describe('Pokemon', () => {
 
   describe('creates a pokemon', () => {
     it('should create a Pokemon instance with the correct properties', () => {
-      expect(pokemon.getPokemonName()).toBe('Pikachu');
-      expect(pokemon.getPokemonType()).toEqual(['Electric']);
-      expect(pokemon.getPokemonMaxHealth()).toBe(100);
-      expect(pokemon.getPokemonCurrentHealth()).toBe(100);
-      expect(pokemon.getPokemonSpeed()).toBe(90);
-      expect(pokemon.getPokemonDefense()).toBe(40);
-      expect(pokemon.getPokemonAttack()).toBe(55);
+      expect(pokemon.getName()).toBe('Pikachu');
+      expect(pokemon.getType()).toEqual(['Electric']);
+      expect(pokemon.getMaxHealth()).toBe(100);
+      expect(pokemon.getCurrentHealth()).toBe(100);
+      expect(pokemon.getSpeed()).toBe(90);
+      expect(pokemon.getDefense()).toBe(40);
+      expect(pokemon.getAttack()).toBe(55);
     });
 
     it('Pokemon can have two types', () => {
-      expect(pokemon2.getPokemonType()).toEqual(['Grass', 'Poison']);
+      expect(pokemon2.getType()).toEqual(['Grass', 'Poison']);
     });
   });
   describe('checks if pokemon is alive', () => {
@@ -31,27 +31,27 @@ describe('Pokemon', () => {
     });
 
     it('should return false if the Pokemon is not alive', () => {
-      pokemon.setPokemonCurrentHealth(0);
+      pokemon.setCurrentHealth(0);
       expect(pokemon.isAlive()).toBe(false);
     });
   });
   describe('checks if health can be set correctly', () => {
     it('should set the current health correctly', () => {
-      pokemon.setPokemonCurrentHealth(50);
-      expect(pokemon.getPokemonCurrentHealth()).toBe(50);
+      pokemon.setCurrentHealth(50);
+      expect(pokemon.getCurrentHealth()).toBe(50);
     });
   });
   describe('checks if pokemon can take damage', () => {
     it('tests if a pokemon can take damage correctly', () => {
-      pokemon.setPokemonCurrentHealth(50);
+      pokemon.setCurrentHealth(50);
       pokemon.takeDamage(20);
-      expect(pokemon.getPokemonCurrentHealth()).toBe(30);
+      expect(pokemon.getCurrentHealth()).toBe(30);
     });
 
     it('pokemon can take lethal damage', () => {
-      pokemon.setPokemonCurrentHealth(50);
+      pokemon.setCurrentHealth(50);
       pokemon.takeDamage(50);
-      expect(pokemon.getPokemonCurrentHealth()).toBe(0);
+      expect(pokemon.getCurrentHealth()).toBe(0);
       expect(pokemon.isAlive()).toBe(false);
     });
   });
