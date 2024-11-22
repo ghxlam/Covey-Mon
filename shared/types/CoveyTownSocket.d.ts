@@ -17,7 +17,7 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea;
+export type Interactable = ViewingArea | ConversationArea | CoveymonArea;
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -67,6 +67,11 @@ export interface ViewingArea {
   video?: string;
   isPlaying: boolean;
   elapsedTimeSec: number;
+}
+
+export interface CoveymonArea {
+  id: string,
+  occupantsByID: string[];
 }
 
 export interface ServerToClientEvents {

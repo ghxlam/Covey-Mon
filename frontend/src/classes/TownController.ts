@@ -16,10 +16,11 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isConversationArea, isCoveymon, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
+import CoveymonAreaController from './CoveymonAreaController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
@@ -64,6 +65,8 @@ export type TownEvents = {
    * after updating the town controller's record of conversation areas.
    */
   conversationAreasChanged: (currentConversationAreas: ConversationAreaController[]) => void;
+
+  coveymonChanged: (currentCoveymonAreas: CoveymonAreaController[]) => void;
   /**
    * An event that indicates that the set of viewing areas has changed. This event is emitted after updating
    * the town controller's record of viewing areas.
@@ -131,6 +134,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * replace the array with a new one; clients should take note not to retain stale references.
    */
   private _conversationAreasInternal: ConversationAreaController[] = [];
+
+  private _coveymonAreasInternal: CoveymonAreaController[] = [];
 
   /**
    * The friendly name of the current town, set only once this TownController is connected to the townsService
@@ -291,6 +296,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._conversationAreasInternal;
   }
 
+  public get coveymonAreas() {
+    return this._coveymonAreasInternal;
+  }
+
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {
     this._conversationAreasInternal = newConversationAreas;
     this.emit('conversationAreasChanged', newConversationAreas);
@@ -427,6 +436,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
+      } else if (isCoveymon(interactable)) {
+        const updatedConveymon = this.conversationAreas.find(c => c.id === interactable.id);
+        if (updatedConveymon) {
+          const now = updatedConveymon.isEmpty();
+          updatedConveymon.occupants = this._playersByIDs(interactable.occupantsByID);
+          const after = updatedConveymon.isEmpty();
+          if (now !== after) {
+            this.emit('coveymonChanged', this._coveymonAreasInternal);
+          }
+        }
       }
     });
   }

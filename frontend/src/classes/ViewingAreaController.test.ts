@@ -1,8 +1,8 @@
 import { mock, mockClear, MockProxy } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
-import { ViewingArea } from '../generated/client';
 import TownController from './TownController';
 import ViewingAreaController, { ViewingAreaEvents } from './ViewingAreaController';
+import { ViewingArea } from '../types/CoveyTownSocket';
 
 describe('[T2] ViewingAreaController', () => {
   // A valid ViewingAreaController to be reused within the tests
