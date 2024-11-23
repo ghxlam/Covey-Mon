@@ -1,8 +1,5 @@
 import {
   Button,
-  FormControl,
-  FormLabel,
-  Input,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -14,22 +11,53 @@ import {
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect } from 'react';
 import { useInteractable } from '../../../classes/TownController';
-import { ConversationArea } from '../../../generated/client';
 import useTownController from '../../../hooks/useTownController';
 
-export default function NewConveymonModal(): JSX.Element {
+export default function CoveymonModal(): JSX.Element {
   const coveyTownController = useTownController();
   const newCoveymon = useInteractable('coveymonArea');
 
   const isOpen = newCoveymon !== undefined;
 
+  const toast = useToast();
+
+  // Listener function for Coveymon state updates
+  const updateListener = useCallback(
+    (newState: string | undefined) => {
+      if (newState) {
+        toast({
+          title: 'Coveymon State Updated!',
+          description: `New state: ${newState}`,
+          status: 'info',
+        });
+      } else {
+        toast({
+          title: 'No Coveymon state available',
+          status: 'warning',
+        });
+      }
+    },
+    [toast],
+  );
+
+  // Effect to handle newCoveymon setup and attach listener
   useEffect(() => {
     if (newCoveymon) {
       coveyTownController.pause();
+
+      // Attach the updateListener to newCoveymon
+      newCoveymon.addListener('stateChange', updateListener);
     } else {
       coveyTownController.unPause();
     }
-  }, [coveyTownController, newCoveymon]);
+
+    // Cleanup the listener when the component unmounts or newCoveymon changes
+    return () => {
+      if (newCoveymon) {
+        newCoveymon.removeListener('stateChange', updateListener);
+      }
+    };
+  }, [coveyTownController, newCoveymon, updateListener]);
 
   const closeModal = useCallback(() => {
     if (newCoveymon) {
@@ -37,16 +65,13 @@ export default function NewConveymonModal(): JSX.Element {
     }
   }, [coveyTownController, newCoveymon]);
 
-  const toast = useToast();
-
   const createCoveymonArea = useCallback(async () => {
     if (newCoveymon) {
-      const conversationToCreate: ConversationArea = {
-        id: newCoveymon.name,
-        occupantsByID: [],
-      };
       try {
-        await coveyTownController.createConversationArea(conversationToCreate);
+        await coveyTownController.createCovemonArea({
+          id: newCoveymon.name,
+          occupantsByID: [],
+        });
         toast({
           title: 'Coveymon Created!',
           status: 'success',
@@ -56,7 +81,7 @@ export default function NewConveymonModal(): JSX.Element {
       } catch (err) {
         if (err instanceof Error) {
           toast({
-            title: 'Unable to create coveymon',
+            title: 'Unable to create Coveymon',
             description: err.toString(),
             status: 'error',
           });
@@ -87,20 +112,9 @@ export default function NewConveymonModal(): JSX.Element {
             ev.preventDefault();
             createCoveymonArea();
           }}>
-          <ModalBody pb={6}>
-            <FormControl>
-              <FormLabel htmlFor='topic'>Topic of Conversation</FormLabel>
-              <Input
-                id='topic'
-                placeholder='Share the topic of your conversation'
-                name='topic'
-                value={topic}
-                onChange={e => setTopic(e.target.value)}
-              />
-            </FormControl>
-          </ModalBody>
+          <ModalBody pb={6}></ModalBody>
           <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={createConversation}>
+            <Button colorScheme='blue' mr={3} onClick={createCoveymonArea}>
               Create
             </Button>
             <Button onClick={closeModal}>Cancel</Button>

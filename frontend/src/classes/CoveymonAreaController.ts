@@ -5,11 +5,11 @@ import TypedEmitter from 'typed-emitter';
 import { CoveymonArea as CoveymonAreaModel } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 
-export type CoveyMonAreaEvents = {
+export type CoveymonAreaEvents = {
   occupantsChange: (newOccupants: PlayerController[]) => void;
 };
 
-export default class CoveymonAreaController extends (EventEmitter as new () => TypedEmitter<CoveyMonAreaEvents>) {
+export default class CoveymonAreaController extends (EventEmitter as new () => TypedEmitter<CoveymonAreaEvents>) {
   private _occupants: PlayerController[] = [];
 
   private _id: string;

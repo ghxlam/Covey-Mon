@@ -21,6 +21,7 @@ import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import CoveymonAreaController from './CoveymonAreaController';
+import CoveymonArea from '../components/Town/interactables/CovyemonArea';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
@@ -300,6 +301,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._coveymonAreasInternal;
   }
 
+  private set _coveymonAreas(newCoveymonAreas: CoveymonAreaController[]) {
+    this._coveymonAreasInternal = newCoveymonAreas;
+    this.emit('coveymonChanged', newCoveymonAreas);
+  }
+
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {
     this._conversationAreasInternal = newConversationAreas;
     this.emit('conversationAreasChanged', newConversationAreas);
@@ -437,7 +443,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         );
         updatedViewingArea?.updateFrom(interactable);
       } else if (isCoveymon(interactable)) {
-        const updatedConveymon = this.conversationAreas.find(c => c.id === interactable.id);
+        const updatedConveymon = this.coveymonAreas.find(c => c.id === interactable.id);
         if (updatedConveymon) {
           const now = updatedConveymon.isEmpty();
           updatedConveymon.occupants = this._playersByIDs(interactable.occupantsByID);
@@ -516,6 +522,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
   }
 
+  async createCovemonArea(newArea: { id: string; occupantsByID: Array<string> }) {
+    await this._townsService.createCoveymonArea(this.townID, this.sessionToken, newArea);
+  }
+
   /**
    * Create a new viewing area, sending the request to the townService. Throws an error if the request
    * is not successful. Does not immediately update local state about the new viewing area - it will be
@@ -569,6 +579,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             );
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
+          } else if (isCoveymon(eachInteractable)) {
+            //maybe now it wont be undefined
+            this._coveymonAreasInternal.push(
+              CoveymonAreaController.fromConveymonAreaModel(
+                eachInteractable,
+                this._playersByIDs.bind(this),
+              ),
+            );
           }
         });
         this._userID = initialData.userID;
@@ -602,6 +620,19 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         video: viewingArea.defaultVideoURL,
       });
       this._viewingAreas.push(newController);
+      return newController;
+    }
+  }
+
+  public geCoveymonAreaController(coveymonArea: CoveymonArea): CoveymonAreaController {
+    const existingController = this._coveymonAreasInternal.find(
+      eachExistingArea => eachExistingArea.id === coveymonArea.name,
+    );
+    if (existingController) {
+      return existingController;
+    } else {
+      const newController = new CoveymonAreaController(coveymonArea.name);
+      this._coveymonAreasInternal.push(newController);
       return newController;
     }
   }
@@ -720,6 +751,22 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
   return conversationAreas;
 }
 
+export function useCoveymonAreas(): CoveymonAreaController[] {
+  const townController = useTownController();
+  const [coveymonAreas, setCoveymonAreas] = useState<CoveymonAreaController[]>(
+    townController.coveymonAreas.filter(eachArea => !eachArea.isEmpty()),
+  );
+  useEffect(() => {
+    const updater = (allAreas: CoveymonAreaController[]) => {
+      setCoveymonAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
+    };
+    townController.addListener('coveymonChanged', updater);
+    return () => {
+      townController.removeListener('coveymonChanged', updater);
+    };
+  }, [townController, setCoveymonAreas]);
+  return coveymonAreas;
+}
 /**
  * A react hook to return the PlayerController's corresponding to each player in the town.
  *
