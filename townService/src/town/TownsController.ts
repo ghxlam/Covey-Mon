@@ -22,8 +22,8 @@ import {
   CoveyTownSocket,
   TownSettingsUpdate,
   ViewingArea,
+  CoveymonArea,
 } from '../types/CoveyTownSocket';
-import CoveymonArea from './CoveymonArea';
 
 /**
  * This is the town route

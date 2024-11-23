@@ -569,18 +569,12 @@
                  "height":53,
                  "id":39,
                  "name":"Coveymon",
-                 "properties":[
-                        {
-                         "name":"type",
-                         "type":"string",
-                         "value":"Coveymon"
-                        }],
-                 "rotation":0,
+                 "rotation":10.044329134475,
                  "type":"CoveymonArea",
                  "visible":true,
                  "width":53,
-                 "x":3125,
-                 "y":1208
+                 "x":3130.02802923756,
+                 "y":1203.7842960104
                 }],
          "opacity":1,
          "type":"objectgroup",

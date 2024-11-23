@@ -624,7 +624,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     }
   }
 
-  public geCoveymonAreaController(coveymonArea: CoveymonArea): CoveymonAreaController {
+  public getCoveymonAreaController(coveymonArea: CoveymonArea): CoveymonAreaController {
     const existingController = this._coveymonAreasInternal.find(
       eachExistingArea => eachExistingArea.id === coveymonArea.name,
     );
@@ -767,6 +767,7 @@ export function useCoveymonAreas(): CoveymonAreaController[] {
   }, [townController, setCoveymonAreas]);
   return coveymonAreas;
 }
+
 /**
  * A react hook to return the PlayerController's corresponding to each player in the town.
  *

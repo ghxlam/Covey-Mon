@@ -14,11 +14,12 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  CoveymonArea as CoveymonAreaModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
-import ConveymonArea from './CoveymonArea';
+import CoveymonArea from './CoveymonArea';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -254,10 +255,10 @@ export default class Town {
     return true;
   }
 
-  public addCoveymonArea(coveymonArea: ConveymonArea): boolean {
+  public addCoveymonArea(coveymonArea: CoveymonAreaModel): boolean {
     const area = this._interactables.find(
       eachArea => eachArea.id === coveymonArea.id,
-    ) as ConveymonArea;
+    ) as CoveymonArea;
     if (!area) {
       return false;
     }
@@ -366,7 +367,7 @@ export default class Town {
       );
     const coveymonAreas = objectLayer.objects
       .filter(eachObject => eachObject.type === 'coveymon')
-      .map(eacharea => ConveymonArea.fromMapObject(eacharea, this._broadcastEmitter));
+      .map(eacharea => CoveymonArea.fromMapObject(eacharea, this._broadcastEmitter));
 
     this._interactables = this._interactables
       .concat(viewingAreas)

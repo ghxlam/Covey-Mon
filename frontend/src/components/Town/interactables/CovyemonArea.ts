@@ -15,12 +15,17 @@ export default class CoveymonArea extends Interactable {
 
   private _isInteracting = false;
 
+  private _spaceKey?: Phaser.Input.Keyboard.Key;
+
   constructor(scene: TownGameScene) {
     super(scene);
     this._townController = scene.coveyTownController;
     this.setTintFill();
     this.setAlpha(0.3);
     this._townController.addListener('coveymonChanged', this._updateCoveymonArea);
+
+    // Capture the space key for interactions
+    this._spaceKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   addedToScene(): void {
@@ -47,37 +52,12 @@ export default class CoveymonArea extends Interactable {
     const area = areas.find(eachAreaInController => eachAreaInController.id === this.name);
     if (area !== this._coveymon) {
       if (area === undefined) {
-        // If no matching area is found
         this._coveymon = undefined;
         if (this._infoTextBox) {
           this._infoTextBox.text = '(No Coveymon)';
         }
       } else {
-        // If a matching area is found
         this._coveymon = area;
-
-        // Create a button if the player is overlapping
-        if (this.isOverlapping) {
-          const button = this.scene.add
-            .text(this.scene.scale.width / 2 - 50, this.scene.scale.height / 2 + 50, 'Click Me!', {
-              color: '#FFFFFF',
-              backgroundColor: '#0000FF',
-              padding: { x: 10, y: 5 },
-            })
-            .setInteractive()
-            .setScrollFactor(0)
-            .setDepth(30);
-
-          button.on('pointerdown', () => {
-            // On button click, display "Coveymon!"
-            if (this._infoTextBox) {
-              this._infoTextBox.setText('Coveymon!');
-              this._infoTextBox.setVisible(true);
-            }
-            // Destroy the button after clicking
-            button.destroy();
-          });
-        }
       }
     }
   }
@@ -88,7 +68,7 @@ export default class CoveymonArea extends Interactable {
         .text(
           this.scene.scale.width / 2,
           this.scene.scale.height / 2,
-          'Coveymon \nis undifened but why?\n',
+          'Press SPACE to interact with the Coveymon area!',
           { color: '#000000', backgroundColor: '#FFFFFF' },
         )
         .setScrollFactor(0)
@@ -98,13 +78,31 @@ export default class CoveymonArea extends Interactable {
     this._infoTextBox.x = this.scene.scale.width / 2 - this._infoTextBox.width / 2;
   }
 
+  private _hideInfoBox() {
+    this._infoTextBox?.setVisible(false);
+  }
+
+  private _showCoveymonPopup() {
+    const popup = this.scene.add
+      .text(this.scene.scale.width / 2, this.scene.scale.height / 2, 'CoveyMon!', {
+        color: '#FFFFFF',
+        backgroundColor: '#0000FF',
+        padding: { x: 10, y: 5 },
+      })
+      .setScrollFactor(0)
+      .setDepth(30);
+
+    popup.setOrigin(0.5, 0.5);
+
+    // Hide the popup after 2 seconds
+    this.scene.time.delayedCall(2000, () => popup.destroy());
+  }
+
   overlap(): void {
-    if (this._coveymon === undefined) {
-      this._showInfoBox();
-    }
+    this._showInfoBox();
   }
 
   overlapExit(): void {
-    this._infoTextBox?.setVisible(false);
+    this._hideInfoBox();
   }
 }
