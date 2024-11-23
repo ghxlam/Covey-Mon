@@ -23,9 +23,6 @@ export default class CoveymonArea extends Interactable {
     this.setTintFill();
     this.setAlpha(0.3);
     this._townController.addListener('coveymonChanged', this._updateCoveymonArea);
-
-    // Capture the space key for interactions
-    this._spaceKey = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   addedToScene(): void {
@@ -80,22 +77,6 @@ export default class CoveymonArea extends Interactable {
 
   private _hideInfoBox() {
     this._infoTextBox?.setVisible(false);
-  }
-
-  private _showCoveymonPopup() {
-    const popup = this.scene.add
-      .text(this.scene.scale.width / 2, this.scene.scale.height / 2, 'CoveyMon!', {
-        color: '#FFFFFF',
-        backgroundColor: '#0000FF',
-        padding: { x: 10, y: 5 },
-      })
-      .setScrollFactor(0)
-      .setDepth(30);
-
-    popup.setOrigin(0.5, 0.5);
-
-    // Hide the popup after 2 seconds
-    this.scene.time.delayedCall(2000, () => popup.destroy());
   }
 
   overlap(): void {
