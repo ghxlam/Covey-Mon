@@ -36,8 +36,9 @@ export default function PreJoinScreens() {
   return (
     <IntroContainer>
       <MediaErrorSnackbar error={mediaError} />
-      <Heading as="h2" size="xl">Welcome to Covey.Town!</Heading>
+      <Heading as="h2" size="xl">Welcome to Group 12's Covey.Town!</Heading>
       <Text p="4">
+        CoveyMon is our Covey.Town instance name.
         Covey.Town is a social platform that integrates a 2D game-like metaphor with video chat.
         To get started, setup your camera and microphone, choose a username, and then create a new town
         to hang out in, or join an existing one.

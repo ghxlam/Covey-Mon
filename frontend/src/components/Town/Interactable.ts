@@ -1,4 +1,5 @@
 import TownController from '../../classes/TownController';
+import GameArea from './interactables/GameArea';
 import TownGameScene from './TownGameScene';
 
 //TODO is there not some way to figure this out from generic types/supertypes?
