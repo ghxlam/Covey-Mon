@@ -16,7 +16,7 @@ import { useInteractable } from '../../../classes/TownController';
 export function JoinModal({ onJoin }: { onJoin: () => void }) {
   return (
     <>
-      <Modal Header>Hello!</ModalHeader>
+      <ModalHeader>Hello!</ModalHeader>
       <ModalBody>
         <p>This is a simple popup message saying Hello!</p>
       </ModalBody>
