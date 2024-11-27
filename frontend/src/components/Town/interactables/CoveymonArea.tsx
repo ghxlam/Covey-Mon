@@ -13,27 +13,47 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
 
+export function JoinModal({ onJoin }: { onJoin: () => void }) {
+  return (
+    <>
+      <Modal Header>Hello!</ModalHeader>
+      <ModalBody>
+        <p>This is a simple popup message saying Hello!</p>
+      </ModalBody>
+      <ModalFooter>
+        <Button colorScheme='blue' mr={3} onClick={onJoin}>
+          Join
+        </Button>
+      </ModalFooter>
+    </>
+  );
+}
+
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false); // Manage modal visibility
-  const onClose = useCallback(() => setIsOpen(false), []);
   const coveymon = useInteractable('coveymonArea');
   const coveyTownController = useTownController();
   const toast = useToast();
 
-  // Listen for events to open/close the modal
-  useEffect(() => {
-    if (coveymon) {
-      coveyTownController.pause();
-    } else {
-      coveyTownController.unPause();
-    }
-  }, [coveymon, coveyTownController]);
+  const openModal = useCallback(() => {
+    setIsOpen(true);
+    coveyTownController.pause(); // Pause the game when modal is opened
+  }, [coveyTownController]);
 
   const closeModal = useCallback(() => {
+    setIsOpen(false);
     if (coveymon) {
-      coveyTownController.interactEnd(coveymon);
+      coveyTownController.interactEnd(coveymon); // End the interaction
     }
-  }, [coveyTownController, coveymon]);
+    coveyTownController.unPause(); // Unpause the game when modal is closed
+  }, [coveymon, coveyTownController]);
+
+  // Detect if we are interacting with a Coveymon area and open the modal
+  useEffect(() => {
+    if (coveymon) {
+      openModal();
+    }
+  }, [coveymon, openModal]);
 
   const openToast = () => {
     toast({
@@ -46,7 +66,7 @@ export default function CoveymonAreaModal(): JSX.Element {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={closeModal}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Hello!</ModalHeader>
