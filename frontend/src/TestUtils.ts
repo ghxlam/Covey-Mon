@@ -7,6 +7,8 @@ import TownController, { TownEvents } from './classes/TownController';
 import ViewingAreaController from './classes/ViewingAreaController';
 import { TownsService } from './generated/client';
 import { CoveyTownSocket, ServerToClientEvents, TownJoinResponse } from './types/CoveyTownSocket';
+import CoveymonArea from './components/Town/interactables/CovyemonArea';
+import CoveymonAreaController from './classes/CoveymonAreaController';
 
 //These types copied from socket.io server library so that we don't have to depend on the whole thing to have type-safe tests.
 type SocketReservedEventsMap = {
@@ -85,6 +87,7 @@ type MockedTownControllerProperties = {
   players?: PlayerController[];
   conversationAreas?: ConversationAreaController[];
   viewingAreas?: ViewingAreaController[];
+  coveymonAreas?: CoveymonAreaController[];
 };
 export function mockTownController({
   friendlyName,
@@ -95,6 +98,7 @@ export function mockTownController({
   players,
   conversationAreas,
   viewingAreas,
+  coveymonAreas,
 }: MockedTownControllerProperties) {
   const mockedController = mock<TownController>();
   if (friendlyName) {
@@ -122,6 +126,9 @@ export function mockTownController({
   }
   if (viewingAreas) {
     Object.defineProperty(mockedController, 'viewingAreas', { value: viewingAreas });
+  }
+  if (CoveymonArea) {
+    Object.defineProperty(mockedController, 'coveymonAreas', { value: coveymonAreas });
   }
   return mockedController;
 }

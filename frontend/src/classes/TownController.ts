@@ -16,10 +16,12 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea } from '../types/TypeUtils';
+import { isConversationArea, isCoveymon, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
+import CoveymonAreaController from './CoveymonAreaController';
+import CoveymonArea from '../components/Town/interactables/CovyemonArea';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
@@ -64,6 +66,8 @@ export type TownEvents = {
    * after updating the town controller's record of conversation areas.
    */
   conversationAreasChanged: (currentConversationAreas: ConversationAreaController[]) => void;
+
+  coveymonChanged: (currentCoveymonAreas: CoveymonAreaController[]) => void;
   /**
    * An event that indicates that the set of viewing areas has changed. This event is emitted after updating
    * the town controller's record of viewing areas.
@@ -131,6 +135,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    * replace the array with a new one; clients should take note not to retain stale references.
    */
   private _conversationAreasInternal: ConversationAreaController[] = [];
+
+  private _coveymonAreasInternal: CoveymonAreaController[] = [];
 
   /**
    * The friendly name of the current town, set only once this TownController is connected to the townsService
@@ -291,6 +297,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._conversationAreasInternal;
   }
 
+  public get coveymonAreas() {
+    return this._coveymonAreasInternal;
+  }
+
+  private set _coveymonAreas(newCoveymonAreas: CoveymonAreaController[]) {
+    this._coveymonAreasInternal = newCoveymonAreas;
+    this.emit('coveymonChanged', newCoveymonAreas);
+  }
+
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {
     this._conversationAreasInternal = newConversationAreas;
     this.emit('conversationAreasChanged', newConversationAreas);
@@ -427,6 +442,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
+      } else if (isCoveymon(interactable)) {
+        const updatedConveymon = this.coveymonAreas.find(c => c.id === interactable.id);
+        if (updatedConveymon) {
+          const now = updatedConveymon.isEmpty();
+          updatedConveymon.occupants = this._playersByIDs(interactable.occupantsByID);
+          const after = updatedConveymon.isEmpty();
+          if (now !== after) {
+            this.emit('coveymonChanged', this._coveymonAreasInternal);
+          }
+        }
       }
     });
   }
@@ -497,6 +522,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
   }
 
+  async createCovemonArea(newArea: { id: string; occupantsByID: Array<string> }) {
+    await this._townsService.createCoveymonArea(this.townID, this.sessionToken, newArea);
+  }
+
   /**
    * Create a new viewing area, sending the request to the townService. Throws an error if the request
    * is not successful. Does not immediately update local state about the new viewing area - it will be
@@ -540,6 +569,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
         this._conversationAreas = [];
         this._viewingAreas = [];
+        this._coveymonAreas = [];
         initialData.interactables.forEach(eachInteractable => {
           if (isConversationArea(eachInteractable)) {
             this._conversationAreasInternal.push(
@@ -550,6 +580,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             );
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
+          } else if (isCoveymon(eachInteractable)) {
+            //maybe now it wont be undefined
+            this._coveymonAreasInternal.push(
+              CoveymonAreaController.fromConveymonAreaModel(
+                eachInteractable,
+                this._playersByIDs.bind(this),
+              ),
+            );
           }
         });
         this._userID = initialData.userID;
@@ -583,6 +621,19 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         video: viewingArea.defaultVideoURL,
       });
       this._viewingAreas.push(newController);
+      return newController;
+    }
+  }
+
+  public getCoveymonAreaController(coveymonArea: CoveymonArea): CoveymonAreaController {
+    const existingController = this._coveymonAreasInternal.find(
+      eachExistingArea => eachExistingArea.id === coveymonArea.name,
+    );
+    if (existingController) {
+      return existingController;
+    } else {
+      const newController = new CoveymonAreaController(coveymonArea.name);
+      this._coveymonAreasInternal.push(newController);
       return newController;
     }
   }
@@ -699,6 +750,23 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
     };
   }, [townController, setConversationAreas]);
   return conversationAreas;
+}
+
+export function useCoveymonAreas(): CoveymonAreaController[] {
+  const townController = useTownController();
+  const [coveymonAreas, setCoveymonAreas] = useState<CoveymonAreaController[]>(
+    townController.coveymonAreas.filter(eachArea => !eachArea.isEmpty()),
+  );
+  useEffect(() => {
+    const updater = (allAreas: CoveymonAreaController[]) => {
+      setCoveymonAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
+    };
+    townController.addListener('coveymonChanged', updater);
+    return () => {
+      townController.removeListener('coveymonChanged', updater);
+    };
+  }, [townController, setCoveymonAreas]);
+  return coveymonAreas;
 }
 
 /**
