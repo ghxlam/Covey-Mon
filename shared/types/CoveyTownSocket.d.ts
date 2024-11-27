@@ -78,6 +78,12 @@ export interface CoveymonArea {
   occupantsByID: string[];
 }
 
+export interface CoveymonGameCommand {
+  interactableId: string,
+  type: "JOIN" | "LEAVE",
+  player: Player
+}
+
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -87,10 +93,12 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+  
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+  coveymonGameCommand: (command: CoveymonGameCommand) => void;
 }
