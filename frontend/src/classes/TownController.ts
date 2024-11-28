@@ -12,6 +12,10 @@ import useTownController from '../hooks/useTownController';
 import {
   ChatMessage,
   CoveyTownSocket,
+  InteractableCommand,
+  InteractableCommandBase,
+  InteractableCommandResponse,
+  InteractableID,
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
@@ -22,8 +26,10 @@ import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import CoveymonAreaController from './CoveymonAreaController';
 import CoveymonArea from '../components/Town/interactables/CovyemonArea';
+import { nanoid } from 'nanoid';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
+const SOCKET_COMMAND_TIMEOUT_MS = 5000; // Timeout duration
 
 export type ConnectionProperties = {
   userName: string;
@@ -669,6 +675,51 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _playersByIDs(playerIDs: string[]): PlayerController[] {
     return this._playersInternal.filter(eachPlayer => playerIDs.includes(eachPlayer.id));
   }
+
+  /**
+   * Sends an InteractableArea command to the townService. Returns a promise that resolves
+   * when the command is acknowledged by the server.
+   *
+   * If the command is not acknowledged within SOCKET_COMMAND_TIMEOUT_MS, the promise will reject.
+   *
+   * If the command is acknowledged successfully, the promise will resolve with the payload of the response.
+   *
+   * If the command is acknowledged with an error, the promise will reject with the error.
+   *
+   * @param interactableID ID of the interactable area to send the command to
+   * @param command The command to send @see InteractableCommand
+   * @returns A promise for the InteractableResponse corresponding to the command
+   *
+   **/
+  public async sendInteractableCommand<CommandType extends InteractableCommand>(
+    interactableID: InteractableID,
+    command: CommandType,
+  ): Promise<InteractableCommandResponse<CommandType>['payload']> {
+    const commandMessage: InteractableCommand & InteractableCommandBase = {
+      ...command,
+      commandID: nanoid(),
+      interactableID: interactableID,
+    };
+    return new Promise((resolve, reject) => {
+      const watchdog = setTimeout(() => {
+        reject('Command timed out');
+      }, SOCKET_COMMAND_TIMEOUT_MS);
+
+      const ackListener = (response: InteractableCommandResponse<CommandType>) => {
+        if (response.commandID === commandMessage.commandID) {
+          clearTimeout(watchdog);
+          this._socket.off('commandResponse', ackListener);
+          if (response.error) {
+            reject(response.error);
+          } else {
+            resolve(response.payload);
+          }
+        }
+      };
+      this._socket.on('commandResponse', ackListener);
+      this._socket.emit('interactableCommand', commandMessage);
+    });
+  }
 }
 
 /**
@@ -751,6 +802,11 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
   }, [townController, setConversationAreas]);
   return conversationAreas;
 }
+
+/**
+ * react hook for coveymon
+ * @returns coveymonArea
+ */
 
 export function useCoveymonAreas(): CoveymonAreaController[] {
   const townController = useTownController();

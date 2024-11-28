@@ -8,32 +8,17 @@ import {
   ModalHeader,
   ModalOverlay,
   useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
 
-export function JoinModal({ onJoin }: { onJoin: () => void }) {
-  return (
-    <>
-      <ModalHeader>Hello!</ModalHeader>
-      <ModalBody>
-        <p>This is a simple popup message saying Hello!</p>
-      </ModalBody>
-      <ModalFooter>
-        <Button colorScheme='blue' mr={3} onClick={onJoin}>
-          Join
-        </Button>
-      </ModalFooter>
-    </>
-  );
-}
-
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false); // Manage modal visibility
+  const [gameState, setGameState] = useState<'idle' | 'waiting' | 'underConstruction'>('idle'); // Manage game state
   const coveymon = useInteractable('coveymonArea');
   const coveyTownController = useTownController();
-  const toast = useToast();
 
   const openModal = useCallback(() => {
     setIsOpen(true);
@@ -46,6 +31,7 @@ export default function CoveymonAreaModal(): JSX.Element {
       coveyTownController.interactEnd(coveymon); // End the interaction
     }
     coveyTownController.unPause(); // Unpause the game when modal is closed
+    setGameState('idle'); // Reset the game state
   }, [coveymon, coveyTownController]);
 
   // Detect if we are interacting with a Coveymon area and open the modal
@@ -55,13 +41,11 @@ export default function CoveymonAreaModal(): JSX.Element {
     }
   }, [coveymon, openModal]);
 
-  const openToast = () => {
-    toast({
-      title: 'Hello!',
-      description: 'This is a simple popup message.',
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
+  const handleJoinGame = () => {
+    setGameState('waiting'); // Transition to waiting state
+    // Example: Listen for an event when another player joins
+    coveyTownController.onPlayerJoined(() => {
+      setGameState('underConstruction'); // Transition to under construction when the event occurs
     });
   };
 
@@ -69,18 +53,58 @@ export default function CoveymonAreaModal(): JSX.Element {
     <Modal isOpen={isOpen} onClose={closeModal}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Hello!</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <p>This is a simple popup message saying Hello!</p>
-        </ModalBody>
+        {gameState === 'idle' && (
+          <>
+            <ModalHeader>Join Game</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <p>Click the button below to join the game.</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme='blue' onClick={handleJoinGame}>
+                Join Game
+              </Button>
+              <Button onClick={closeModal}>Close</Button>
+            </ModalFooter>
+          </>
+        )}
 
-        <ModalFooter>
-          <Button colorScheme='blue' mr={3} onClick={openToast}>
-            Show Toast
-          </Button>
-          <Button onClick={closeModal}>Close</Button>
-        </ModalFooter>
+        {gameState === 'waiting' && (
+          <>
+            <ModalHeader>Waiting for Other Player</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Spinner size='xl' />
+              <p style={{ marginTop: '1rem' }}>Waiting for another player to join...</p>
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={closeModal}>Cancel</Button>
+            </ModalFooter>
+          </>
+        )}
+
+        {gameState === 'underConstruction' && (
+          <>
+            <ModalHeader>Under Construction</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <div
+                style={{
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
+                }}>
+                Under Construction
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button onClick={closeModal}>Close</Button>
+            </ModalFooter>
+          </>
+        )}
       </ModalContent>
     </Modal>
   );

@@ -1,12 +1,12 @@
 import { mock, mockClear } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
 import { PlayerLocation } from '../types/CoveyTownSocket';
-import CoveymonAreaController, { CoveyMonAreaEvents } from './CoveymonAreaController';
+import CoveymonAreaController, { CoveymonAreaEvents } from './CoveymonAreaController';
 import PlayerController from './PlayerController';
 
 describe('[T1] CoveymonAreaController', () => {
   let testArea: CoveymonAreaController;
-  const mockListeners = mock<CoveyMonAreaEvents>();
+  const mockListeners = mock<CoveymonAreaEvents>();
   beforeEach(() => {
     const playerLocation: PlayerLocation = {
       moving: false,

@@ -4,13 +4,20 @@ import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
 import { CoveymonArea as CoveymonAreaModel } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
+import TownController from './TownController';
 
 export type CoveymonAreaEvents = {
   occupantsChange: (newOccupants: PlayerController[]) => void;
 };
 
+export const PLAYER_NOT_IN_GAME_ERROR = 'Player is not in game';
+
+export const NO_GAME_IN_PROGRESS_ERROR = 'No game in progress';
+
 export default class CoveymonAreaController extends (EventEmitter as new () => TypedEmitter<CoveymonAreaEvents>) {
   private _occupants: PlayerController[] = [];
+
+  protected _townController!: TownController;
 
   private _id: string;
 
@@ -55,6 +62,31 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
     const ret = new CoveymonAreaController(coveymAreaModel.id);
     ret.occupants = playerFinder(coveymAreaModel.occupantsByID);
     return ret;
+  }
+
+  /**
+   * Sends a request to the server to join the current game in the game area, or create a new one if there is no game in progress.
+   *
+   * @throws An error if the server rejects the request to join the game.
+   */
+  public async joinGame() {
+    const { gameID } = await this._townController.sendInteractableCommand(this.id, {
+      type: 'JoinGame',
+    });
+    this._id = gameID;
+  }
+
+  /**
+   * Sends a request to the server to leave the current game in the game area.
+   */
+  public async leaveGame() {
+    const instanceID = this._id;
+    if (instanceID) {
+      await this._townController.sendInteractableCommand(this.id, {
+        type: 'LeaveGame',
+        gameID: instanceID,
+      });
+    }
   }
 }
 
