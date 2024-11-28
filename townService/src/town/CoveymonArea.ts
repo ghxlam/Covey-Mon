@@ -1,13 +1,17 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
-import Player from '../lib/Player';
 import {
   BoundingBox,
   CoveymonArea as ConveymonAreaModel,
+  Player as GamePlayer,
   TownEmitter,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
+import Player from '../lib/Player';
+
 export default class CoveymonArea extends InteractableArea {
+  private _players: GamePlayer[] = [];
+
   public get isActive(): boolean {
     return this._occupants.length > 0;
   }
@@ -18,6 +22,30 @@ export default class CoveymonArea extends InteractableArea {
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
+  }
+
+  get players() {
+    return this._players;
+  }
+
+  public join(player: GamePlayer) {
+    if (this._players.length === 2) {
+      throw new Error('The game is full!');
+    }
+
+    const playerExists = this._players.find(currentPlayer => currentPlayer.id === player.id);
+    if (playerExists) {
+      throw new Error('The same player cannot join twice!');
+    }
+
+    this._players.push(player);
+  }
+
+  public leave(player: GamePlayer) {
+    if (this._players.length === 0) {
+      throw new Error('The game is already empty!');
+    }
+    this._players = this._players.filter(currentPlayer => currentPlayer.id !== player.id);
   }
 
   public remove(player: Player) {
