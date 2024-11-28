@@ -13,10 +13,14 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
+import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
+import CoveymonAreaController from '../../../classes/CoveymonAreaController'; // Import the CoveymonAreaController
 
 export default function CoveymonAreaModal(): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false); // Manage modal visibility
-  const [gameState, setGameState] = useState<'idle' | 'waiting' | 'underConstruction'>('idle'); // Manage game state
+  const [isOpen, setIsOpen] = useState(false);
+  const [gameState, setGameState] = useState<'idle' | 'waiting' | 'underConstruction'>('idle');
+  const [coveymonAreaController, setCoveymonAreaController] =
+    useState<CoveymonAreaController | null>(null);
   const coveymon = useInteractable('coveymonArea');
   const coveyTownController = useTownController();
 
@@ -38,15 +42,29 @@ export default function CoveymonAreaModal(): JSX.Element {
   useEffect(() => {
     if (coveymon) {
       openModal();
+      // Initialize the CoveymonAreaController here, you may need to adapt this logic to your actual setup
+      const newCoveymonAreaController = new CoveymonAreaController(coveymon.id);
+      setCoveymonAreaController(newCoveymonAreaController);
     }
   }, [coveymon, openModal]);
 
+  // Handle join game logic
   const handleJoinGame = () => {
-    setGameState('waiting'); // Transition to waiting state
-    // Example: Listen for an event when another player joins
-    coveyTownController.onPlayerJoined(() => {
-      setGameState('underConstruction'); // Transition to under construction when the event occurs
-    });
+    if (coveymonAreaController) {
+      setGameState('waiting');
+      // Simulate joining the game (you can replace this with actual join logic)
+      coveymonAreaController.joinGame().then(() => {
+        setGameState('underConstruction');
+      });
+    }
+  };
+
+  // Handle leave game logic
+  const handleLeaveGame = () => {
+    if (coveymonAreaController) {
+      setGameState('idle');
+      coveymonAreaController.leaveGame();
+    }
   };
 
   return (
@@ -78,12 +96,12 @@ export default function CoveymonAreaModal(): JSX.Element {
               <p style={{ marginTop: '1rem' }}>Waiting for another player to join...</p>
             </ModalBody>
             <ModalFooter>
-              <Button onClick={closeModal}>Cancel</Button>
+              <Button onClick={handleLeaveGame}>Leave Game</Button>
             </ModalFooter>
           </>
         )}
 
-        {gameState === 'underConstruction' && (
+        {gameState === 'underConstruction' && coveymonAreaController && (
           <>
             <ModalHeader>Under Construction</ModalHeader>
             <ModalCloseButton />
@@ -99,9 +117,11 @@ export default function CoveymonAreaModal(): JSX.Element {
                 }}>
                 Under Construction
               </div>
+              <CoveymonBattles coveymonAreaController={coveymonAreaController} />{' '}
+              {/* Render CoveymonBattles */}
             </ModalBody>
             <ModalFooter>
-              <Button onClick={closeModal}>Close</Button>
+              <Button onClick={handleLeaveGame}>Leave Game</Button>
             </ModalFooter>
           </>
         )}

@@ -804,25 +804,30 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
 }
 
 /**
- * react hook for coveymon
- * @returns coveymonArea
+ * React hook for getting a single Coveymon area
+ * @returns a single CoveymonAreaController or undefined if none is found
  */
-
-export function useCoveymonAreas(): CoveymonAreaController[] {
+export function useCoveymonArea(): CoveymonAreaController {
   const townController = useTownController();
-  const [coveymonAreas, setCoveymonAreas] = useState<CoveymonAreaController[]>(
-    townController.coveymonAreas.filter(eachArea => !eachArea.isEmpty()),
-  );
+  const [coveymonArea, setCoveymonArea] = useState<CoveymonAreaController | undefined>(undefined);
+
   useEffect(() => {
+    // Set the first non-empty Coveymon area (or any logic you prefer)
+    const activeArea = townController.coveymonAreas.find(eachArea => !eachArea.isEmpty());
+    setCoveymonArea(activeArea);
+
     const updater = (allAreas: CoveymonAreaController[]) => {
-      setCoveymonAreas(allAreas.filter(eachArea => !eachArea.isEmpty()));
+      const area = allAreas.find(eachArea => !eachArea.isEmpty());
+      setCoveymonArea(area); // Update the area when coveymon areas change
     };
+
     townController.addListener('coveymonChanged', updater);
     return () => {
       townController.removeListener('coveymonChanged', updater);
     };
-  }, [townController, setCoveymonAreas]);
-  return coveymonAreas;
+  }, [townController]);
+
+  return coveymonArea;
 }
 
 /**

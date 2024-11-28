@@ -8,6 +8,7 @@ import TownController from './TownController';
 
 export type CoveymonAreaEvents = {
   occupantsChange: (newOccupants: PlayerController[]) => void;
+  playerJoined: (newPlayer: PlayerController) => void;
 };
 
 export const PLAYER_NOT_IN_GAME_ERROR = 'Player is not in game';
@@ -17,7 +18,7 @@ export const NO_GAME_IN_PROGRESS_ERROR = 'No game in progress';
 export default class CoveymonAreaController extends (EventEmitter as new () => TypedEmitter<CoveymonAreaEvents>) {
   private _occupants: PlayerController[] = [];
 
-  protected _townController!: TownController;
+  public _townController!: TownController;
 
   private _id: string;
 
@@ -35,6 +36,12 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
       newOccupants.length !== this._occupants.length ||
       _.xor(newOccupants, this._occupants).length > 0
     ) {
+      // Check if a new player has joined
+      const newPlayer = _.difference(newOccupants, this._occupants)[0]; // Get the new player
+      if (newPlayer) {
+        this.emit('playerJoined', newPlayer); // Emit the 'playerJoined' event
+      }
+
       this.emit('occupantsChange', newOccupants);
       this._occupants = newOccupants;
     }
