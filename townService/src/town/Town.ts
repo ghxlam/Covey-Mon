@@ -162,7 +162,7 @@ export default class Town {
 
     socket.on('coveymonGameCommand', (command: CoveymonGameCommand) => {
       const coveymonGameArea = this._interactables.find(
-        interactable => interactable.id === command.interactableId,
+        interactable => interactable.id === command.id,
       ) as CoveymonArea;
       if (coveymonGameArea) {
         switch (command.type) {
