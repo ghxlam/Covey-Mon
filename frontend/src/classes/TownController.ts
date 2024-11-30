@@ -11,6 +11,7 @@ import { TownsService, TownsServiceClient } from '../generated/client';
 import useTownController from '../hooks/useTownController';
 import {
   ChatMessage,
+  CoveymonGameCommand,
   CoveyTownSocket,
   InteractableCommand,
   InteractableCommandBase,
@@ -114,6 +115,9 @@ export type TownEvents = {
  *
  */
 export default class TownController extends (EventEmitter as new () => TypedEmitter<TownEvents>) {
+  sendInteractableCommand(id: string, arg1: { type: string; gameID: string; }) {
+    throw new Error('Method not implemented.');
+  }
   /** The socket connection to the townsService. Messages emitted here
    * are received by the TownController in that service.
    */
@@ -677,48 +681,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
-   * Sends an InteractableArea command to the townService. Returns a promise that resolves
-   * when the command is acknowledged by the server.
-   *
-   * If the command is not acknowledged within SOCKET_COMMAND_TIMEOUT_MS, the promise will reject.
-   *
-   * If the command is acknowledged successfully, the promise will resolve with the payload of the response.
-   *
-   * If the command is acknowledged with an error, the promise will reject with the error.
-   *
-   * @param interactableID ID of the interactable area to send the command to
-   * @param command The command to send @see InteractableCommand
-   * @returns A promise for the InteractableResponse corresponding to the command
-   *
-   **/
-  public async sendInteractableCommand<CommandType extends InteractableCommand>(
-    interactableID: InteractableID,
-    command: CommandType,
-  ): Promise<InteractableCommandResponse<CommandType>['payload']> {
-    const commandMessage: InteractableCommand & InteractableCommandBase = {
-      ...command,
-      commandID: nanoid(),
-      interactableID: interactableID,
-    };
-    return new Promise((resolve, reject) => {
-      const watchdog = setTimeout(() => {
-        reject('Command timed out');
-      }, SOCKET_COMMAND_TIMEOUT_MS);
+   * Sends event emiter to back end of join and leave.
+   */
 
-      const ackListener = (response: InteractableCommandResponse<CommandType>) => {
-        if (response.commandID === commandMessage.commandID) {
-          clearTimeout(watchdog);
-          this._socket.off('commandResponse', ackListener);
-          if (response.error) {
-            reject(response.error);
-          } else {
-            resolve(response.payload);
-          }
-        }
-      };
-      this._socket.on('commandResponse', ackListener);
-      this._socket.emit('interactableCommand', commandMessage);
-    });
+  public emitCovemonGameUpdate(command: CoveymonGameCommand) {
+    this._socket.emit('coveymonGameCommand', command);
   }
 }
 
@@ -801,33 +768,6 @@ export function useActiveConversationAreas(): ConversationAreaController[] {
     };
   }, [townController, setConversationAreas]);
   return conversationAreas;
-}
-
-/**
- * React hook for getting a single Coveymon area
- * @returns a single CoveymonAreaController or undefined if none is found
- */
-export function useCoveymonArea(): CoveymonAreaController {
-  const townController = useTownController();
-  const [coveymonArea, setCoveymonArea] = useState<CoveymonAreaController | undefined>(undefined);
-
-  useEffect(() => {
-    // Set the first non-empty Coveymon area (or any logic you prefer)
-    const activeArea = townController.coveymonAreas.find(eachArea => !eachArea.isEmpty());
-    setCoveymonArea(activeArea);
-
-    const updater = (allAreas: CoveymonAreaController[]) => {
-      const area = allAreas.find(eachArea => !eachArea.isEmpty());
-      setCoveymonArea(area); // Update the area when coveymon areas change
-    };
-
-    townController.addListener('coveymonChanged', updater);
-    return () => {
-      townController.removeListener('coveymonChanged', updater);
-    };
-  }, [townController]);
-
-  return coveymonArea;
 }
 
 /**

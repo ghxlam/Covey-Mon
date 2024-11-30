@@ -79,7 +79,7 @@ export interface CoveymonArea {
 }
 
 export interface CoveymonGameCommand {
-  interactableId: string,
+  id: string,
   type: "JOIN" | "LEAVE",
   player: Player
 }
@@ -93,7 +93,6 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
-  
 }
 
 export interface ClientToServerEvents {

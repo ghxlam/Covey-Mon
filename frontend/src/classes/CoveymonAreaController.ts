@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-import { CoveymonArea as CoveymonAreaModel } from '../types/CoveyTownSocket';
+import { CoveymonArea as CoveymonAreaModel, Player } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 import TownController from './TownController';
 
@@ -22,6 +22,10 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
 
   private _id: string;
 
+  private _player!: PlayerController;
+
+  protected _players: PlayerController[] = [];
+
   constructor(id: string) {
     super();
     this._id = id;
@@ -36,12 +40,6 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
       newOccupants.length !== this._occupants.length ||
       _.xor(newOccupants, this._occupants).length > 0
     ) {
-      // Check if a new player has joined
-      const newPlayer = _.difference(newOccupants, this._occupants)[0]; // Get the new player
-      if (newPlayer) {
-        this.emit('playerJoined', newPlayer); // Emit the 'playerJoined' event
-      }
-
       this.emit('occupantsChange', newOccupants);
       this._occupants = newOccupants;
     }
@@ -77,10 +75,11 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    * @throws An error if the server rejects the request to join the game.
    */
   public async joinGame() {
-    const { gameID } = await this._townController.sendInteractableCommand(this.id, {
-      type: 'JoinGame',
+    await this._townController.emitCovemonGameUpdate({
+      type: 'JOIN',
+      id: this._id,
+      player: this._player,
     });
-    this._id = gameID;
   }
 
   /**

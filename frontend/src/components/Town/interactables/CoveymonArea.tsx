@@ -42,28 +42,44 @@ export default function CoveymonAreaModal(): JSX.Element {
   useEffect(() => {
     if (coveymon) {
       openModal();
-      // Initialize the CoveymonAreaController here, you may need to adapt this logic to your actual setup
+      // Initialize the CoveymonAreaController here 
       const newCoveymonAreaController = new CoveymonAreaController(coveymon.id);
       setCoveymonAreaController(newCoveymonAreaController);
     }
   }, [coveymon, openModal]);
 
   // Handle join game logic
-  const handleJoinGame = () => {
+  const handleJoinGame = async () => {
     if (coveymonAreaController) {
-      setGameState('waiting');
-      // Simulate joining the game (you can replace this with actual join logic)
-      coveymonAreaController.joinGame().then(() => {
+      try {
+        setGameState('waiting'); // Update the state to indicate the game is in the "waiting" state.
+
+        // Call the joinGame function and wait for it to complete
+        await coveymonAreaController.joinGame();
+
+        // If successful, transition to the "underConstruction" state
         setGameState('underConstruction');
-      });
+      } catch (error) {
+        // Handle errors if the joinGame call fails
+        console.error('Failed to join the game:', error);
+      }
     }
   };
 
-  // Handle leave game logic
-  const handleLeaveGame = () => {
+  const handleLeaveGame = async () => {
     if (coveymonAreaController) {
-      setGameState('idle');
-      coveymonAreaController.leaveGame();
+      try {
+        setGameState('waiting'); // Indicate the process is in progress
+
+        // Call the leaveGame function and wait for it to complete
+        await coveymonAreaController.leaveGame();
+
+        // Set the state to 'idle' after successfully leaving the game
+        setGameState('idle');
+      } catch (error) {
+        // Handle errors if the leaveGame call fails
+        console.error('Failed to leave the game:', error);
+      }
     }
   };
 
