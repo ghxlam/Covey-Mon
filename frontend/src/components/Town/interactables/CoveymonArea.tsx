@@ -4,7 +4,6 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   useToast,
@@ -12,33 +11,37 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
-
-export function JoinModal({ onJoin }: { onJoin: () => void }) {
-  return (
-    <>
-      <ModalHeader>Hello!</ModalHeader>
-      <ModalBody>
-        <p>This is a simple popup message saying Hello!</p>
-      </ModalBody>
-      <ModalFooter>
-        <Button colorScheme='blue' mr={3} onClick={onJoin}>
-          Join
-        </Button>
-      </ModalFooter>
-    </>
-  );
-}
+import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
+import CoveymonAreaController from '../../../classes/CoveymonAreaController';
 
 export default function CoveymonAreaModal(): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false); // Manage modal visibility
-  const coveymon = useInteractable('coveymonArea');
+  const [isOpen, setIsOpen] = useState(false);
+  const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
+  const [isBattlesModalOpen, setBattlesModalOpen] = useState(false); // State to control the CoveymonBattles modal
+  const coveymon = useInteractable('coveymonArea'); // Interact with CoveymonArea directly
   const coveyTownController = useTownController();
   const toast = useToast();
 
-  const openModal = useCallback(() => {
-    setIsOpen(true);
-    coveyTownController.pause(); // Pause the game when modal is opened
+  // Initialize CoveymonAreaController
+  const [coveymonAreaController, setCoveymonAreaController] =
+    useState<CoveymonAreaController | null>(null);
+
+  // Set up CoveymonAreaController when userID is available
+  useEffect(() => {
+    if (coveyTownController?.userID) {
+      setCoveymonAreaController(
+        new CoveymonAreaController(coveyTownController.userID, coveyTownController),
+      );
+    }
   }, [coveyTownController]);
+
+  // Open modal when interacting with Coveymon area
+  useEffect(() => {
+    if (coveymon) {
+      setIsOpen(true);
+      coveyTownController.pause();
+    }
+  }, [coveymon, coveyTownController]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -46,42 +49,69 @@ export default function CoveymonAreaModal(): JSX.Element {
       coveyTownController.interactEnd(coveymon); // End the interaction
     }
     coveyTownController.unPause(); // Unpause the game when modal is closed
+    setGameState('waiting'); // Reset the game state to waiting
   }, [coveymon, coveyTownController]);
 
-  // Detect if we are interacting with a Coveymon area and open the modal
-  useEffect(() => {
-    if (coveymon) {
-      openModal();
+  const handleJoinGame = useCallback(async () => {
+    if (!coveymonAreaController) {
+      toast({
+        title: 'Error',
+        description: 'Game controller is not initialized.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
     }
-  }, [coveymon, openModal]);
 
-  const openToast = () => {
-    toast({
-      title: 'Hello!',
-      description: 'This is a simple popup message.',
-      status: 'info',
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+    try {
+      await coveymonAreaController.joinGame();
+      toast({
+        title: 'Success',
+        description: 'You have successfully joined the game!',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      setGameState('gameInProgress');
+      setBattlesModalOpen(true); // Open battles modal
+    } catch (err) {
+      toast({
+        title: 'Error joining game',
+        description: (err as Error).message || 'An unexpected error occurred.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [coveymonAreaController, toast]);
 
   return (
-    <Modal isOpen={isOpen} onClose={closeModal}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>Hello!</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <p>This is a simple popup message saying Hello!</p>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button colorScheme='blue' mr={3} onClick={openToast}>
-            Show Toast
-          </Button>
-          <Button onClick={closeModal}>Close</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+    <>
+      {/* Main Modal for Coveymon Area */}
+      <Modal isOpen={isOpen} onClose={closeModal}>
+        <ModalOverlay />
+        <ModalContent>
+          {gameState === 'waiting' && (
+            <>
+              <ModalHeader>Join the Game</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <p style={{ marginBottom: '1rem' }}>
+                  Click the button below to join the game once ready!
+                </p>
+                <Button
+                  colorScheme='blue'
+                  size='lg'
+                  onClick={handleJoinGame}
+                  isDisabled={!coveymonAreaController}>
+                  Join Game
+                </Button>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }
