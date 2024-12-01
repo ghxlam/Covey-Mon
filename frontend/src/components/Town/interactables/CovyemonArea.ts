@@ -3,19 +3,12 @@ import TownController from '../../../classes/TownController';
 import { BoundingBox } from '../../../types/CoveyTownSocket';
 import Interactable, { KnownInteractableTypes } from '../Interactable';
 import TownGameScene from '../TownGameScene';
-
 export default class CoveymonArea extends Interactable {
   private _infoTextBox?: Phaser.GameObjects.Text;
 
-  private _labelText?: Phaser.GameObjects.Text;
-
-  private _townController: TownController;
+  public _townController: TownController;
 
   private _coveymon?: CoveymonAreaController;
-
-  private _isInteracting = false;
-
-  private _spaceKey?: Phaser.Input.Keyboard.Key;
 
   constructor(scene: TownGameScene) {
     super(scene);

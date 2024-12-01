@@ -4,30 +4,44 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   useToast,
-  Spinner,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
 import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
-import CoveymonAreaController from '../../../classes/CoveymonAreaController'; // Import the CoveymonAreaController
+import CoveymonAreaController from '../../../classes/CoveymonAreaController';
 
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
-  const [gameState, setGameState] = useState<'idle' | 'waiting' | 'underConstruction'>('idle');
+  const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
+  const [isBattlesModalOpen, setBattlesModalOpen] = useState(false); // State to control the CoveymonBattles modal
+  const coveymon = useInteractable('coveymonArea'); // Interact with CoveymonArea directly
+  const coveyTownController = useTownController();
+  const toast = useToast();
+
+  // Initialize CoveymonAreaController
   const [coveymonAreaController, setCoveymonAreaController] =
     useState<CoveymonAreaController | null>(null);
-  const coveymon = useInteractable('coveymonArea');
-  const coveyTownController = useTownController();
 
-  const openModal = useCallback(() => {
-    setIsOpen(true);
-    coveyTownController.pause(); // Pause the game when modal is opened
+  // Set up CoveymonAreaController when userID is available
+  useEffect(() => {
+    if (coveyTownController?.userID) {
+      setCoveymonAreaController(
+        new CoveymonAreaController(coveyTownController.userID, coveyTownController),
+      );
+    }
   }, [coveyTownController]);
+
+  // Open modal when interacting with Coveymon area
+  useEffect(() => {
+    if (coveymon) {
+      setIsOpen(true);
+      coveyTownController.pause();
+    }
+  }, [coveymon, coveyTownController]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -35,113 +49,69 @@ export default function CoveymonAreaModal(): JSX.Element {
       coveyTownController.interactEnd(coveymon); // End the interaction
     }
     coveyTownController.unPause(); // Unpause the game when modal is closed
-    setGameState('idle'); // Reset the game state
+    setGameState('waiting'); // Reset the game state to waiting
   }, [coveymon, coveyTownController]);
 
-  // Detect if we are interacting with a Coveymon area and open the modal
-  useEffect(() => {
-    if (coveymon) {
-      openModal();
-      // Initialize the CoveymonAreaController here 
-      const newCoveymonAreaController = new CoveymonAreaController(coveymon.id);
-      setCoveymonAreaController(newCoveymonAreaController);
+  const handleJoinGame = useCallback(async () => {
+    if (!coveymonAreaController) {
+      toast({
+        title: 'Error',
+        description: 'Game controller is not initialized.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
     }
-  }, [coveymon, openModal]);
 
-  // Handle join game logic
-  const handleJoinGame = async () => {
-    if (coveymonAreaController) {
-      try {
-        setGameState('waiting'); // Update the state to indicate the game is in the "waiting" state.
-
-        // Call the joinGame function and wait for it to complete
-        await coveymonAreaController.joinGame();
-
-        // If successful, transition to the "underConstruction" state
-        setGameState('underConstruction');
-      } catch (error) {
-        // Handle errors if the joinGame call fails
-        console.error('Failed to join the game:', error);
-      }
+    try {
+      await coveymonAreaController.joinGame();
+      toast({
+        title: 'Success',
+        description: 'You have successfully joined the game!',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      setGameState('gameInProgress');
+      setBattlesModalOpen(true); // Open battles modal
+    } catch (err) {
+      toast({
+        title: 'Error joining game',
+        description: (err as Error).message || 'An unexpected error occurred.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
-  };
-
-  const handleLeaveGame = async () => {
-    if (coveymonAreaController) {
-      try {
-        setGameState('waiting'); // Indicate the process is in progress
-
-        // Call the leaveGame function and wait for it to complete
-        await coveymonAreaController.leaveGame();
-
-        // Set the state to 'idle' after successfully leaving the game
-        setGameState('idle');
-      } catch (error) {
-        // Handle errors if the leaveGame call fails
-        console.error('Failed to leave the game:', error);
-      }
-    }
-  };
+  }, [coveymonAreaController, toast]);
 
   return (
-    <Modal isOpen={isOpen} onClose={closeModal}>
-      <ModalOverlay />
-      <ModalContent>
-        {gameState === 'idle' && (
-          <>
-            <ModalHeader>Join Game</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <p>Click the button below to join the game.</p>
-            </ModalBody>
-            <ModalFooter>
-              <Button colorScheme='blue' onClick={handleJoinGame}>
-                Join Game
-              </Button>
-              <Button onClick={closeModal}>Close</Button>
-            </ModalFooter>
-          </>
-        )}
-
-        {gameState === 'waiting' && (
-          <>
-            <ModalHeader>Waiting for Other Player</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <Spinner size='xl' />
-              <p style={{ marginTop: '1rem' }}>Waiting for another player to join...</p>
-            </ModalBody>
-            <ModalFooter>
-              <Button onClick={handleLeaveGame}>Leave Game</Button>
-            </ModalFooter>
-          </>
-        )}
-
-        {gameState === 'underConstruction' && coveymonAreaController && (
-          <>
-            <ModalHeader>Under Construction</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              <div
-                style={{
-                  height: '200px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
-                }}>
-                Under Construction
-              </div>
-              <CoveymonBattles coveymonAreaController={coveymonAreaController} />{' '}
-              {/* Render CoveymonBattles */}
-            </ModalBody>
-            <ModalFooter>
-              <Button onClick={handleLeaveGame}>Leave Game</Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+    <>
+      {/* Main Modal for Coveymon Area */}
+      <Modal isOpen={isOpen} onClose={closeModal}>
+        <ModalOverlay />
+        <ModalContent>
+          {gameState === 'waiting' && (
+            <>
+              <ModalHeader>Join the Game</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <p style={{ marginBottom: '1rem' }}>
+                  Click the button below to join the game once ready!
+                </p>
+                <Button
+                  colorScheme='blue'
+                  size='lg'
+                  onClick={handleJoinGame}
+                  isDisabled={!coveymonAreaController}>
+                  Join Game
+                </Button>
+              </ModalBody>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }

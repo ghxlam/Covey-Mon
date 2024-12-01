@@ -68,7 +68,7 @@ export default class CoveymonArea extends InteractableArea {
   ): CoveymonArea {
     const { name, width, height } = mapObject;
     if (!width || !height) {
-      throw new Error(`Malformed viewing area ${name}`);
+      throw new Error(`Malformed CoveymonArea area ${name}`);
     }
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
     return new CoveymonArea({ id: name, occupantsByID: [] }, rect, broadcastEmitter);

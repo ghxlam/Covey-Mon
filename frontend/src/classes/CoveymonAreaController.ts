@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-import { CoveymonArea as CoveymonAreaModel, Player } from '../types/CoveyTownSocket';
+import { CoveymonArea as CoveymonAreaModel } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 import TownController from './TownController';
 
@@ -12,23 +12,21 @@ export type CoveymonAreaEvents = {
 };
 
 export const PLAYER_NOT_IN_GAME_ERROR = 'Player is not in game';
-
 export const NO_GAME_IN_PROGRESS_ERROR = 'No game in progress';
 
 export default class CoveymonAreaController extends (EventEmitter as new () => TypedEmitter<CoveymonAreaEvents>) {
   private _occupants: PlayerController[] = [];
 
-  public _townController!: TownController;
-
   private _id: string;
 
-  private _player!: PlayerController;
+  private _townController: TownController; // Added TownController
 
   protected _players: PlayerController[] = [];
 
-  constructor(id: string) {
+  constructor(id: string, townController: TownController) {
     super();
     this._id = id;
+    this._townController = townController;
   }
 
   get id() {
@@ -60,11 +58,12 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
     };
   }
 
-  static fromConveymonAreaModel(
+  static fromCoveymonAreaModel(
     coveymAreaModel: CoveymonAreaModel,
     playerFinder: (playerIDs: string[]) => PlayerController[],
+    townController: TownController, // Added townController parameter
   ): CoveymonAreaController {
-    const ret = new CoveymonAreaController(coveymAreaModel.id);
+    const ret = new CoveymonAreaController(coveymAreaModel.id, townController); // Pass TownController here
     ret.occupants = playerFinder(coveymAreaModel.occupantsByID);
     return ret;
   }
@@ -74,24 +73,34 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    *
    * @throws An error if the server rejects the request to join the game.
    */
-  public async joinGame() {
-    await this._townController.emitCovemonGameUpdate({
-      type: 'JOIN',
-      id: this._id,
-      player: this._player,
-    });
+  public async joinGame(): Promise<void> {
+    try {
+      // Now using the _townController to emit the game update
+      this._townController.emitCovemonGameUpdate({
+        id: this._id,
+        type: 'JOIN',
+        player: this._townController.ourPlayer,
+      });
+    } catch (error) {
+      // Log or rethrow the error for the caller to handle
+      throw new Error(`Error joining the game: ${(error as Error).message}`);
+    }
   }
 
   /**
    * Sends a request to the server to leave the current game in the game area.
    */
   public async leaveGame() {
-    const instanceID = this._id;
-    if (instanceID) {
-      await this._townController.sendInteractableCommand(this.id, {
-        type: 'LeaveGame',
-        gameID: instanceID,
+    try {
+      // Using the _townController to emit the game update for leaving the game
+      this._townController.emitCovemonGameUpdate({
+        id: this._id,
+        type: 'LEAVE',
+        player: this._townController.ourPlayer,
       });
+    } catch (error) {
+      // Log or rethrow the error for the caller to handle
+      throw new Error(`Error leaving the game: ${(error as Error).message}`);
     }
   }
 }

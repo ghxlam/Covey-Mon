@@ -115,9 +115,10 @@ export type TownEvents = {
  *
  */
 export default class TownController extends (EventEmitter as new () => TypedEmitter<TownEvents>) {
-  sendInteractableCommand(id: string, arg1: { type: string; gameID: string; }) {
+  sendInteractableCommand(id: string, arg1: { type: string; gameID: string }) {
     throw new Error('Method not implemented.');
   }
+
   /** The socket connection to the townsService. Messages emitted here
    * are received by the TownController in that service.
    */
@@ -453,11 +454,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         );
         updatedViewingArea?.updateFrom(interactable);
       } else if (isCoveymon(interactable)) {
-        const updatedConveymon = this.coveymonAreas.find(c => c.id === interactable.id);
-        if (updatedConveymon) {
-          const now = updatedConveymon.isEmpty();
-          updatedConveymon.occupants = this._playersByIDs(interactable.occupantsByID);
-          const after = updatedConveymon.isEmpty();
+        const updatedCoveymon = this.coveymonAreas.find(c => c.id === interactable.id);
+        if (updatedCoveymon) {
+          const now = updatedCoveymon.isEmpty();
+          updatedCoveymon.occupants = this._playersByIDs(interactable.occupantsByID);
+          const after = updatedCoveymon.isEmpty();
           if (now !== after) {
             this.emit('coveymonChanged', this._coveymonAreasInternal);
           }
@@ -591,11 +592,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
           } else if (isCoveymon(eachInteractable)) {
-            //maybe now it wont be undefined
             this._coveymonAreasInternal.push(
-              CoveymonAreaController.fromConveymonAreaModel(
+              CoveymonAreaController.fromCoveymonAreaModel(
                 eachInteractable,
                 this._playersByIDs.bind(this),
+                this,
               ),
             );
           }
@@ -642,7 +643,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     if (existingController) {
       return existingController;
     } else {
-      const newController = new CoveymonAreaController(coveymonArea.name);
+      const newController = new CoveymonAreaController(
+        coveymonArea.name,
+        coveymonArea._townController,
+      );
       this._coveymonAreasInternal.push(newController);
       return newController;
     }
@@ -681,7 +685,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   }
 
   /**
-   * Sends event emiter to back end of join and leave.
+   * Sends event emiter to back end
    */
 
   public emitCovemonGameUpdate(command: CoveymonGameCommand) {
