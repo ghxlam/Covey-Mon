@@ -168,12 +168,12 @@ export default class Town {
         switch (command.type) {
           case 'JOIN':
             coveymonGameArea.join(command.player);
-            this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
 
             break;
           case 'LEAVE':
             coveymonGameArea.leave(command.player);
-            this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
             break;
           default: // TODO: when a response handler on the frontend is implemented, return an error here
             break;

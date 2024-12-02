@@ -2,7 +2,12 @@ import EventEmitter from 'events';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-import { CoveymonArea as CoveymonAreaModel, Player } from '../types/CoveyTownSocket';
+import {
+  CoveymonArea as CoveymonAreaModel,
+  CoveymonGameCommand,
+  CoveyTownSocket,
+  Player,
+} from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 import TownController from './TownController';
 
@@ -10,6 +15,7 @@ export type CoveymonAreaEvents = {
   occupantsChange: (newOccupants: PlayerController[]) => void;
   playerJoined: (newPlayer: PlayerController) => void;
   playersUpdated: (newPlayers: Player[]) => void;
+  coveymonGameCommand: (command: CoveymonGameCommand) => void;
 };
 
 export const PLAYER_NOT_IN_GAME_ERROR = 'Player is not in game';
@@ -84,14 +90,12 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async joinGame(): Promise<void> {
     try {
-      // Now using the _townController to emit the game update
-      this._townController.emitCovemonGameUpdate({
+      this.emit('coveymonGameCommand', {
         id: this._id,
         type: 'JOIN',
         player: this._townController.ourPlayer,
       });
     } catch (error) {
-      // Log or rethrow the error for the caller to handle
       throw new Error(`Error joining the game: ${(error as Error).message}`);
     }
     this.updatePlayers();
@@ -102,14 +106,12 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async leaveGame() {
     try {
-      // Using the _townController to emit the game update for leaving the game
-      this._townController.emitCovemonGameUpdate({
+      this.emit('coveymonGameCommand', {
         id: this._id,
         type: 'LEAVE',
         player: this._townController.ourPlayer,
       });
     } catch (error) {
-      // Log or rethrow the error for the caller to handle
       throw new Error(`Error leaving the game: ${(error as Error).message}`);
     }
     this.updatePlayers();
