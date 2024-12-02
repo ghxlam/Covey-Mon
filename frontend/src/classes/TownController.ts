@@ -20,6 +20,7 @@ import {
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
+  Player,
 } from '../types/CoveyTownSocket';
 import { isConversationArea, isCoveymon, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
@@ -75,6 +76,8 @@ export type TownEvents = {
   conversationAreasChanged: (currentConversationAreas: ConversationAreaController[]) => void;
 
   coveymonChanged: (currentCoveymonAreas: CoveymonAreaController[]) => void;
+
+  playersUpdated: (players: Player[]) => void;
   /**
    * An event that indicates that the set of viewing areas has changed. This event is emitted after updating
    * the town controller's record of viewing areas.
@@ -148,6 +151,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _conversationAreasInternal: ConversationAreaController[] = [];
 
   private _coveymonAreasInternal: CoveymonAreaController[] = [];
+
+  private _coveymonPlayers: Player[] = [];
 
   /**
    * The friendly name of the current town, set only once this TownController is connected to the townsService
@@ -315,6 +320,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private set _coveymonAreas(newCoveymonAreas: CoveymonAreaController[]) {
     this._coveymonAreasInternal = newCoveymonAreas;
     this.emit('coveymonChanged', newCoveymonAreas);
+  }
+
+  private set _updatePlayers(newPlayers: Player[]) {
+    this.emit('playersUpdated', newPlayers);
+    this._coveymonPlayers = newPlayers;
+  }
+
+  public get coveymonPlayerUpdate() {
+    return this._updatePlayers;
   }
 
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {

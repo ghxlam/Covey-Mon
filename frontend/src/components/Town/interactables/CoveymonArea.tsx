@@ -1,3 +1,8 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import useTownController from '../../../hooks/useTownController';
+import { Player } from '../../../types/CoveyTownSocket'; // Import Player type
+import CoveymonAreaController from '../../../classes/CoveymonAreaController';
+import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
 import {
   Button,
   Modal,
@@ -8,30 +13,44 @@ import {
   ModalOverlay,
   useToast,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
-import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
-import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
-import CoveymonAreaController from '../../../classes/CoveymonAreaController';
 
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
   const [isBattlesModalOpen, setBattlesModalOpen] = useState(false); // State to control the CoveymonBattles modal
+  const [players, setPlayers] = useState<Player[]>([]); // State for players in the game
+
   const coveymon = useInteractable('coveymonArea'); // Interact with CoveymonArea directly
-  const coveyTownController = useTownController();
+  const coveyTownController = useTownController(); // Access TownController
   const toast = useToast();
 
   // Initialize CoveymonAreaController
   const [coveymonAreaController, setCoveymonAreaController] =
     useState<CoveymonAreaController | null>(null);
 
-  // Set up CoveymonAreaController when userID is available
   useEffect(() => {
     if (coveyTownController?.userID) {
-      setCoveymonAreaController(
-        new CoveymonAreaController(coveyTownController.userID, coveyTownController),
+      const controller = new CoveymonAreaController(
+        coveyTownController.userID,
+        coveyTownController,
       );
+      setCoveymonAreaController(controller);
+
+      // Update players immediately after initializing the controller
+      setPlayers(controller.players);
+
+      // Register event listener for playersUpdated
+      const handlePlayersUpdated = (newPlayers: Player[]) => {
+        setPlayers(newPlayers);
+      };
+
+      controller.addListener('playersUpdated', handlePlayersUpdated);
+
+      // Cleanup the listener when the component unmounts or coveyTownController changes
+      return () => {
+        controller.removeListener('playersUpdated', handlePlayersUpdated);
+      };
     }
   }, [coveyTownController]);
 
@@ -107,6 +126,16 @@ export default function CoveymonAreaModal(): JSX.Element {
                   isDisabled={!coveymonAreaController}>
                   Join Game
                 </Button>
+              </ModalBody>
+            </>
+          )}
+          {gameState === 'gameInProgress' && (
+            <>
+              <ModalHeader>Game In Progress</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                {/* Pass the players array to CoveymonBattles */}
+                <CoveymonBattles players={players} />
               </ModalBody>
             </>
           )}

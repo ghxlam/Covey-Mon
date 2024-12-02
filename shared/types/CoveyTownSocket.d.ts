@@ -1,4 +1,5 @@
 import exp from "constants";
+import Pokemon from "./Pokemon";
 
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
@@ -33,6 +34,7 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
+  Pokemon?: Pokemon;
 };
 
 export type XY = { x: number, y: number };
@@ -84,6 +86,10 @@ export interface CoveymonGameCommand {
   player: Player
 }
 
+export interface GetPlayers {
+  gameID: string;
+}
+
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -93,6 +99,7 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+  playersUpdated: (players: PLayer[]) => void
 }
 
 export interface ClientToServerEvents {
@@ -100,4 +107,6 @@ export interface ClientToServerEvents {
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   coveymonGameCommand: (command: CoveymonGameCommand) => void;
+  getPlayers: (GameId: string) => void;
+  playersUpdated: (players: PLayer[]) => void
 }

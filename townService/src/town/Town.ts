@@ -107,7 +107,7 @@ export default class Town {
 
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
-   * player, and returning them
+   * player, and returning themN PROGRESS
    *
    * @param newPlayer The new player to add to the town
    */
@@ -175,6 +175,23 @@ export default class Town {
           default: // TODO: when a response handler on the frontend is implemented, return an error here
             break;
         }
+      }
+    });
+
+    socket.on('getPlayers', (gameId: string) => {
+      const coveymonGameArea = this._interactables.find(
+        interactable => interactable.id === gameId,
+      ) as CoveymonArea;
+
+      if (!coveymonGameArea) {
+        console.error(`Game area with ID ${gameId} not found.`);
+        socket.emit('playersUpdated', []); // Emit an empty array or an error message
+        return;
+      }
+
+      if (coveymonGameArea) {
+        // Emit the players array to the frontend
+        socket.emit('playersUpdated', coveymonGameArea.players);
       }
     });
 

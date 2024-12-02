@@ -37,7 +37,6 @@ export default class CoveymonArea extends InteractableArea {
     if (playerExists) {
       throw new Error('The same player cannot join twice!');
     }
-
     this._players.push(player);
   }
 
