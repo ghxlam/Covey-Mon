@@ -322,13 +322,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this.emit('coveymonChanged', newCoveymonAreas);
   }
 
-  private set _updatePlayers(newPlayers: Player[]) {
-    this.emit('playersUpdated', newPlayers);
-    this._coveymonPlayers = newPlayers;
-  }
-
   public get coveymonPlayerUpdate() {
-    return this._updatePlayers;
+    return this._coveymonPlayers;
   }
 
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {
@@ -478,6 +473,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           }
         }
       }
+    });
+    //get updated player array from back end.
+    this._socket.on('playersUpdated', (newPlayers: Player[]) => {
+      this._coveymonPlayers = newPlayers;
     });
   }
 

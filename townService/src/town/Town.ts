@@ -168,30 +168,16 @@ export default class Town {
         switch (command.type) {
           case 'JOIN':
             coveymonGameArea.join(command.player);
+            this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+
             break;
           case 'LEAVE':
             coveymonGameArea.leave(command.player);
+            this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
             break;
           default: // TODO: when a response handler on the frontend is implemented, return an error here
             break;
         }
-      }
-    });
-
-    socket.on('getPlayers', (gameId: string) => {
-      const coveymonGameArea = this._interactables.find(
-        interactable => interactable.id === gameId,
-      ) as CoveymonArea;
-
-      if (!coveymonGameArea) {
-        console.error(`Game area with ID ${gameId} not found.`);
-        socket.emit('playersUpdated', []); // Emit an empty array or an error message
-        return;
-      }
-
-      if (coveymonGameArea) {
-        // Emit the players array to the frontend
-        socket.emit('playersUpdated', coveymonGameArea.players);
       }
     });
 
