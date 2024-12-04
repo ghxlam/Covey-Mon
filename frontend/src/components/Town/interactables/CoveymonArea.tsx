@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { Player } from '../../../types/CoveyTownSocket'; // Import Player type
 import CoveymonAreaController from '../../../classes/CoveymonAreaController';
-import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
+import Pokedex from './Pokedex'; // Import the Pokedex component
 import {
   Button,
   Modal,
@@ -18,14 +18,12 @@ import { useInteractable } from '../../../classes/TownController';
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
-  const [isBattlesModalOpen, setBattlesModalOpen] = useState(false); // State to control the CoveymonBattles modal
-  const [players, setPlayers] = useState<Player[]>([]); // State for players in the game
+  const [players, setPlayers] = useState<Player[]>([]);
 
-  const coveymon = useInteractable('coveymonArea'); // Interact with CoveymonArea directly
-  const coveyTownController = useTownController(); // Access TownController
+  const coveymon = useInteractable('coveymonArea'); 
+  const coveyTownController = useTownController();
   const toast = useToast();
 
-  // Initialize CoveymonAreaController
   const [coveymonAreaController, setCoveymonAreaController] =
     useState<CoveymonAreaController | null>(null);
 
@@ -37,24 +35,20 @@ export default function CoveymonAreaModal(): JSX.Element {
       );
       setCoveymonAreaController(controller);
 
-      // Update players immediately after initializing the controller
       setPlayers(controller.players);
 
-      // Register event listener for playersUpdated
       const handlePlayersUpdated = (newPlayers: Player[]) => {
         setPlayers(newPlayers);
       };
 
       controller.addListener('playersUpdated', handlePlayersUpdated);
 
-      // Cleanup the listener when the component unmounts or coveyTownController changes
       return () => {
         controller.removeListener('playersUpdated', handlePlayersUpdated);
       };
     }
   }, [coveyTownController]);
 
-  // Open modal when interacting with Coveymon area
   useEffect(() => {
     if (coveymon) {
       setIsOpen(true);
@@ -65,10 +59,10 @@ export default function CoveymonAreaModal(): JSX.Element {
   const closeModal = useCallback(() => {
     setIsOpen(false);
     if (coveymon) {
-      coveyTownController.interactEnd(coveymon); // End the interaction
+      coveyTownController.interactEnd(coveymon);
     }
-    coveyTownController.unPause(); // Unpause the game when modal is closed
-    setGameState('waiting'); // Reset the game state to waiting
+    coveyTownController.unPause();
+    setGameState('waiting');
   }, [coveymon, coveyTownController]);
 
   const handleJoinGame = useCallback(async () => {
@@ -87,13 +81,12 @@ export default function CoveymonAreaModal(): JSX.Element {
       await coveymonAreaController.joinGame();
       toast({
         title: 'Success',
-        description: 'You have successfully joined the game!',
+        description: 'Welcome to pokedex, Press on a pokemon to see their stats.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
       setGameState('gameInProgress');
-      setBattlesModalOpen(true); // Open battles modal
     } catch (err) {
       toast({
         title: 'Error joining game',
@@ -120,8 +113,8 @@ export default function CoveymonAreaModal(): JSX.Element {
                   Click the button below to join the game once ready!
                 </p>
                 <Button
-                  colorScheme='blue'
-                  size='lg'
+                  colorScheme="blue"
+                  size="lg"
                   onClick={handleJoinGame}
                   isDisabled={!coveymonAreaController}>
                   Join Game
@@ -131,11 +124,10 @@ export default function CoveymonAreaModal(): JSX.Element {
           )}
           {gameState === 'gameInProgress' && (
             <>
-              <ModalHeader>Game In Progress</ModalHeader>
+              <ModalHeader></ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                {/* Pass the players array to CoveymonBattles */}
-                <CoveymonBattles players={players} />
+                <Pokedex />
               </ModalBody>
             </>
           )}

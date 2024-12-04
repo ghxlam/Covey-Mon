@@ -161,23 +161,33 @@ export default class Town {
     });
 
     socket.on('coveymonGameCommand', (command: CoveymonGameCommand) => {
-      const coveymonGameArea = this._interactables.find(
-        interactable => interactable.id === command.id,
-      ) as CoveymonArea;
-      if (coveymonGameArea) {
-        switch (command.type) {
-          case 'JOIN':
-            coveymonGameArea.join(command.player);
-            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
+      try {
+        const coveymonGameArea = this._interactables.find(
+          interactable => interactable.id === command.id,
+        ) as CoveymonArea;
 
-            break;
-          case 'LEAVE':
-            coveymonGameArea.leave(command.player);
+        if (coveymonGameArea) {
+          switch (command.type) {
+            case 'JOIN':
+              coveymonGameArea.join(command.player);
+              this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
+            case 'LEAVE':
+              coveymonGameArea.leave(command.player);
             newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
             break;
-          default: // TODO: when a response handler on the frontend is implemented, return an error here
-            break;
+            default:
+              // Log a warning if an unsupported command type is received
+              console.log(`Unhandled command type: ${command.type}`);
+              break;
+          }
+        } else {
+          // Handle the case where the specified interactable is not found
+          throw new Error(`CoveymonGameArea with id ${command.id} not found.`);
         }
+      } catch (error) {
+        console.log('Error processing coveymonGameCommand:', error);
+        // Optionally, emit an error event or take corrective action
       }
     });
 

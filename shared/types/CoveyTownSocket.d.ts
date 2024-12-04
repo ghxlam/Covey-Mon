@@ -108,5 +108,4 @@ export interface ClientToServerEvents {
   interactableUpdate: (update: Interactable) => void;
   coveymonGameCommand: (command: CoveymonGameCommand) => void;
   getPlayers: (GameId: string) => void;
-  playersUpdated: (players: PLayer[]) => void
 }

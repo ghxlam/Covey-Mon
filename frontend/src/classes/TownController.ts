@@ -476,7 +476,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     });
     //get updated player array from back end.
     this._socket.on('playersUpdated', (newPlayers: Player[]) => {
-      this._coveymonPlayers = newPlayers;
+      try {
+        if (!Array.isArray(newPlayers)) throw new Error('Received malformed player data.');
+        this._coveymonPlayers = newPlayers;
+      } catch (error) {
+        console.error('Error handling playersUpdated event:', error);
+      }
     });
   }
 
