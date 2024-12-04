@@ -115,7 +115,7 @@ export default class Town {
     const newPlayer = new Player(userName, socket.to(this._townID));
     this._players.push(newPlayer);
 
-    this._connectedSockets.add(socket);
+    this._connectedSockets.add(socket); 
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -174,8 +174,8 @@ export default class Town {
               break;
             case 'LEAVE':
               coveymonGameArea.leave(command.player);
-            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
-            break;
+              this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
             default:
               // Log a warning if an unsupported command type is received
               console.log(`Unhandled command type: ${command.type}`);
