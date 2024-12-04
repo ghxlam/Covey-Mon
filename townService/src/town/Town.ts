@@ -16,7 +16,6 @@ import {
   ViewingArea as ViewingAreaModel,
   CoveymonArea as CoveymonAreaModel,
   CoveymonGameCommand,
-  CoveymonAttackCommand,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -179,6 +178,7 @@ export default class Town {
       }
     });
 
+    /*
     socket.on('coveymonAttackCommand', (command: CoveymonAttackCommand) => {
       const coveymonGameArea = this._interactables.find(
         interactable => interactable.id === command.id,
@@ -187,6 +187,7 @@ export default class Town {
         coveymonGameArea.Attack(command.Coveymon, command.move, command.Coveymon);
       }
     });
+    */
 
     return newPlayer;
   }
