@@ -1,5 +1,5 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
-import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
+// import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
 import {
   BoundingBox,
   CoveymonArea as ConveymonAreaModel,
@@ -49,7 +49,9 @@ export default class CoveymonArea extends InteractableArea {
     this._players = this._players.filter(currentPlayer => currentPlayer.id !== player.id);
   }
 
-  public Attack(attackingcoveymon: Pokemon, move: string, defendingCoveymon: Pokemon) {
+  // getting errors with attack, will fix later
+
+  /* public Attack(attackingcoveymon: Pokemon, move: string, defendingCoveymon: Pokemon) {
     let crit = 0;
     if (Math.random() * 100 >= 7) {
       // calculates the critical hit chance for the pokemon
@@ -69,7 +71,7 @@ export default class CoveymonArea extends InteractableArea {
     }
     const random = Math.floor(Math.random() * (255 - 217 + 1) + 217) / 255;
     defendingCoveymon.takeDamage(damage * random);
-  }
+  } */
 
   public remove(player: Player) {
     super.remove(player);
