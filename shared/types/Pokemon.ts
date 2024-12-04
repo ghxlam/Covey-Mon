@@ -13,8 +13,11 @@ export default class Pokemon {
 
   public pokemonAttack: number;
 
-  // private pokemonMoves: string[][]; // figure out how to set moves
+  private pokemonMoves: string[] = ["tackle","bite","punch","kick"]; // figure out how to set moves
 
+  private pokemonMovesPower: number[] = [40,20,30,50];
+
+  
   constructor(
     Name: string,
     Type: string[],
@@ -35,6 +38,19 @@ export default class Pokemon {
 
   public getName(): string {
     return this.pokemonName;
+  }
+
+  public getMoves(): string[]{
+    return this.pokemonMoves;
+  }
+
+  public getMovesPower(move: string): number{
+    for(let i=0; i<this.getMoves.length; i++){
+      if(move === this.pokemonMoves[i]){
+        return this.pokemonMovesPower[i];
+      }
+    }
+    return -1; // if you get -1 then there is an error
   }
 
   public getType(): string[] {

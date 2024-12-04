@@ -16,6 +16,7 @@ import {
   ViewingArea as ViewingAreaModel,
   CoveymonArea as CoveymonAreaModel,
   CoveymonGameCommand,
+  CoveymonAttackCommand,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -175,6 +176,15 @@ export default class Town {
           default: // TODO: when a response handler on the frontend is implemented, return an error here
             break;
         }
+      }
+    });
+
+    socket.on('coveymonAttackCommand', (command: CoveymonAttackCommand) => {
+      const coveymonGameArea = this._interactables.find(
+        interactable => interactable.id === command.id,
+      ) as CoveymonArea;
+      if (coveymonGameArea) {
+        coveymonGameArea.Attack(command.Coveymon, command.move, command.Coveymon);
       }
     });
 
