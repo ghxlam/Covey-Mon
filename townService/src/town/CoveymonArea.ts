@@ -38,6 +38,7 @@ export default class CoveymonArea extends InteractableArea {
       throw new Error('The same player cannot join twice!');
     }
     this._players.push(player);
+    this._emitAreaChanged();
   }
 
   public leave(player: GamePlayer) {
@@ -45,19 +46,14 @@ export default class CoveymonArea extends InteractableArea {
       throw new Error('The game is already empty!');
     }
     this._players = this._players.filter(currentPlayer => currentPlayer.id !== player.id);
-  }
-
-  public remove(player: Player) {
-    super.remove(player);
-    if (this._occupants.length === 0) {
-      this._emitAreaChanged();
-    }
+    this._emitAreaChanged();
   }
 
   public toModel(): ConveymonAreaModel {
     return {
       id: this.id,
       occupantsByID: this.occupantsByID,
+      players: this._players,
     };
   }
 
@@ -70,6 +66,6 @@ export default class CoveymonArea extends InteractableArea {
       throw new Error(`Malformed CoveymonArea area ${name}`);
     }
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
-    return new CoveymonArea({ id: name, occupantsByID: [] }, rect, broadcastEmitter);
+    return new CoveymonArea({ id: name, occupantsByID: [], players: [] }, rect, broadcastEmitter);
   }
 }

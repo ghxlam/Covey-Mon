@@ -170,15 +170,23 @@ export default class Town {
           switch (command.type) {
             case 'JOIN':
               coveymonGameArea.join(command.player);
-              this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+              socket.emit('coveymonGameCommandResponse', {
+                isOK: true,
+                error: '',
+              });
               break;
             case 'LEAVE':
               coveymonGameArea.leave(command.player);
-            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
-            break;
+              socket.emit('coveymonGameCommandResponse', {
+                isOK: true,
+                error: '',
+              });
+              break;
             default:
-              // Log a warning if an unsupported command type is received
-              console.log(`Unhandled command type: ${command.type}`);
+              socket.emit('coveymonGameCommandResponse', {
+                isOK: false,
+                error: 'Undefined command',
+              });
               break;
           }
         } else {
@@ -398,8 +406,9 @@ export default class Town {
       .map(eachConvAreaObj =>
         ConversationArea.fromMapObject(eachConvAreaObj, this._broadcastEmitter),
       );
+
     const coveymonAreas = objectLayer.objects
-      .filter(eachObject => eachObject.type === 'coveymon')
+      .filter(eachObject => eachObject.type === 'CoveymonArea')
       .map(eacharea => CoveymonArea.fromMapObject(eacharea, this._broadcastEmitter));
 
     this._interactables = this._interactables

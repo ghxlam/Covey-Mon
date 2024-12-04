@@ -1,6 +1,6 @@
 import assert from 'assert';
 import EventEmitter from 'events';
-import _ from 'lodash';
+import _, { each, update } from 'lodash';
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import TypedEmitter from 'typed-emitter';
@@ -13,14 +13,11 @@ import {
   ChatMessage,
   CoveymonGameCommand,
   CoveyTownSocket,
-  InteractableCommand,
-  InteractableCommandBase,
-  InteractableCommandResponse,
-  InteractableID,
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
   Player,
+  CoveymonCommandResponse,
 } from '../types/CoveyTownSocket';
 import { isConversationArea, isCoveymon, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
@@ -118,10 +115,6 @@ export type TownEvents = {
  *
  */
 export default class TownController extends (EventEmitter as new () => TypedEmitter<TownEvents>) {
-  sendInteractableCommand(id: string, arg1: { type: string; gameID: string }) {
-    throw new Error('Method not implemented.');
-  }
-
   /** The socket connection to the townsService. Messages emitted here
    * are received by the TownController in that service.
    */
@@ -446,7 +439,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events (@see ViewingAreaController and @see ConversationAreaController)
      */
     this._socket.on('interactableUpdate', interactable => {
-      if (isConversationArea(interactable)) {
+      if ('players' in interactable) {
+        const updatedCoveymon = this.coveymonAreas.find(c => c.id === interactable.id);
+        if (updatedCoveymon) {
+          updatedCoveymon.updateFrom(interactable);
+        }
+      } else if (isConversationArea(interactable)) {
         const updatedConversationArea = this.conversationAreas.find(c => c.id === interactable.id);
         if (updatedConversationArea) {
           const emptyNow = updatedConversationArea.isEmpty();
@@ -462,16 +460,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           eachArea => eachArea.id === interactable.id,
         );
         updatedViewingArea?.updateFrom(interactable);
-      } else if (isCoveymon(interactable)) {
-        const updatedCoveymon = this.coveymonAreas.find(c => c.id === interactable.id);
-        if (updatedCoveymon) {
-          const now = updatedCoveymon.isEmpty();
-          updatedCoveymon.occupants = this._playersByIDs(interactable.occupantsByID);
-          const after = updatedCoveymon.isEmpty();
-          if (now !== after) {
-            this.emit('coveymonChanged', this._coveymonAreasInternal);
-          }
-        }
       }
     });
     //get updated player array from back end.
@@ -509,6 +497,26 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
    */
   public emitChatMessage(message: ChatMessage) {
     this._socket.emit('chatMessage', message);
+  }
+
+  public async sendInteractableCommand(command: CoveymonGameCommand) {
+    return new Promise((resolve, reject) => {
+      const watchdog = setTimeout(() => {
+        reject('TIMED OUT!');
+      }, SOCKET_COMMAND_TIMEOUT_MS);
+
+      const ackListener = (response: CoveymonCommandResponse) => {
+        clearTimeout(watchdog);
+        this._socket.off('coveymonGameCommandResponse', ackListener);
+        if (response.isOK) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      };
+      this._socket.on('coveymonGameCommandResponse', ackListener);
+      this._socket.emit('coveymonGameCommand', command);
+    });
   }
 
   /**
@@ -551,9 +559,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     await this._townsService.createConversationArea(this.townID, this.sessionToken, newArea);
   }
 
-  async createCovemonArea(newArea: { id: string; occupantsByID: Array<string> }) {
-    await this._townsService.createCoveymonArea(this.townID, this.sessionToken, newArea);
-  }
+  // async createCovemonArea(newArea: { id: string; occupantsByID: Array<string> }) {
+  //   await this._townsService.createCoveymonArea(this.townID, this.sessionToken, newArea);
+  // }
 
   /**
    * Create a new viewing area, sending the request to the townService. Throws an error if the request
@@ -600,7 +608,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._viewingAreas = [];
         this._coveymonAreas = [];
         initialData.interactables.forEach(eachInteractable => {
-          if (isConversationArea(eachInteractable)) {
+          console.log(eachInteractable);
+
+          if ('players' in eachInteractable) {
+            this._coveymonAreasInternal.push(new CoveymonAreaController(eachInteractable.id, this));
+          } else if (isConversationArea(eachInteractable)) {
             this._conversationAreasInternal.push(
               ConversationAreaController.fromConversationAreaModel(
                 eachInteractable,
@@ -610,13 +622,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
           } else if (isViewingArea(eachInteractable)) {
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
           } else if (isCoveymon(eachInteractable)) {
-            this._coveymonAreasInternal.push(
-              CoveymonAreaController.fromCoveymonAreaModel(
-                eachInteractable,
-                this._playersByIDs.bind(this),
-                this,
-              ),
-            );
+            console.log('WE GOT IT!!!');
           }
         });
         this._userID = initialData.userID;
@@ -650,22 +656,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         video: viewingArea.defaultVideoURL,
       });
       this._viewingAreas.push(newController);
-      return newController;
-    }
-  }
-
-  public getCoveymonAreaController(coveymonArea: CoveymonArea): CoveymonAreaController {
-    const existingController = this._coveymonAreasInternal.find(
-      eachExistingArea => eachExistingArea.id === coveymonArea.name,
-    );
-    if (existingController) {
-      return existingController;
-    } else {
-      const newController = new CoveymonAreaController(
-        coveymonArea.name,
-        coveymonArea._townController,
-      );
-      this._coveymonAreasInternal.push(newController);
       return newController;
     }
   }
