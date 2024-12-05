@@ -14,7 +14,7 @@ describe('CoveymonArea', () => {
 
   beforeEach(() => {
     mockClear(townEmitter);
-    testArea = new CoveymonArea({ id, occupantsByID: [] }, testAreaBox, townEmitter);
+    testArea = new CoveymonArea({ id, occupantsByID: [], players: [] }, testAreaBox, townEmitter);
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
   });
