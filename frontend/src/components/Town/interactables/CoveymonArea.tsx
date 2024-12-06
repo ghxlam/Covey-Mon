@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { Player } from '../../../types/CoveyTownSocket';
 import CoveymonAreaController from '../../../classes/CoveymonAreaController';
+import pokeDex from './pokeDex';
 import {
   Button,
   Modal,
@@ -13,7 +14,6 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useInteractable } from '../../../classes/TownController';
-
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
@@ -125,7 +125,7 @@ export default function CoveymonAreaModal(): JSX.Element {
               <ModalHeader></ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <PokeDex />
+                <pokeDex />
               </ModalBody>
             </>
           )}

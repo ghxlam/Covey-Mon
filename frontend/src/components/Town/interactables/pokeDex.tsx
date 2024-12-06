@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PokeDex: React.FC = () => {
+const pokeDex: React.FC = () => {
   return (
     <div>
       <div>
@@ -10,4 +10,4 @@ const PokeDex: React.FC = () => {
   );
 };
 
-export default PokeDex;
+export default pokeDex;
