@@ -5,7 +5,6 @@ import TypedEmitter from 'typed-emitter';
 import {
   CoveymonArea as CoveymonAreaModel,
   CoveymonGameCommand,
-  CoveyTownSocket,
   Player,
 } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';

@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
-import { Player } from '../../../types/CoveyTownSocket'; // Import Player type
+import { Player } from '../../../types/CoveyTownSocket';
 import CoveymonAreaController from '../../../classes/CoveymonAreaController';
-import Pokedex from './Pokedex'; // Import the Pokedex component
 import {
   Button,
   Modal,
@@ -18,9 +17,8 @@ import { useInteractable } from '../../../classes/TownController';
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  const coveymon = useInteractable('coveymonArea'); 
+  const [, setPlayers] = useState<Player[]>([]);
+  const coveymon = useInteractable('coveymonArea');
   const coveyTownController = useTownController();
   const toast = useToast();
 
@@ -113,8 +111,8 @@ export default function CoveymonAreaModal(): JSX.Element {
                   Click the button below to join the game once ready!
                 </p>
                 <Button
-                  colorScheme="blue"
-                  size="lg"
+                  colorScheme='blue'
+                  size='lg'
                   onClick={handleJoinGame}
                   isDisabled={!coveymonAreaController}>
                   Join Game
@@ -127,7 +125,7 @@ export default function CoveymonAreaModal(): JSX.Element {
               <ModalHeader></ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <Pokedex />
+                <PokeDex />
               </ModalBody>
             </>
           )}
