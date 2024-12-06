@@ -15,44 +15,46 @@ import {
 } from '@chakra-ui/react';
 import { useInteractable } from '../../../classes/TownController';
 
-function useCoveymonAreaController() {
-  const townController = useTownController();
-  if (townController.coveymonAreas.length) {
-    return townController.coveymonAreas[0] as CoveymonAreaController;
-  }
-  throw new Error('This is broken!');
-}
-
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
   const [players, setPlayers] = useState<Player[]>([]);
 
-  const coveymon = useInteractable('coveymonArea');
+  const coveymon = useInteractable('coveymonArea'); 
   const coveyTownController = useTownController();
   const toast = useToast();
 
-  const coveymonAreaController = useCoveymonAreaController();
+  const [coveymonAreaController, setCoveymonAreaController] =
+    useState<CoveymonAreaController | null>(null);
+
+  useEffect(() => {
+    if (coveyTownController?.userID) {
+      const controller = new CoveymonAreaController(
+        coveyTownController.userID,
+        coveyTownController,
+      );
+      setCoveymonAreaController(controller);
+
+      setPlayers(controller.players);
+
+      const handlePlayersUpdated = (newPlayers: Player[]) => {
+        setPlayers(newPlayers);
+      };
+
+      controller.addListener('playersUpdated', handlePlayersUpdated);
+
+      return () => {
+        controller.removeListener('playersUpdated', handlePlayersUpdated);
+      };
+    }
+  }, [coveyTownController]);
 
   useEffect(() => {
     if (coveymon) {
       setIsOpen(true);
       coveyTownController.pause();
-    } else {
-      coveyTownController.unPause();
     }
   }, [coveymon, coveyTownController]);
-
-  useEffect(() => {
-    const handlePlayersUpdated = (newPlayers: Player[]) => {
-      console.log('New Player Found!');
-      setPlayers(newPlayers);
-    };
-    coveymonAreaController.addListener('playersUpdated', handlePlayersUpdated);
-    return () => {
-      coveymonAreaController.removeListener('playersUpdated', handlePlayersUpdated);
-    };
-  }, [coveymonAreaController]);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -110,7 +112,11 @@ export default function CoveymonAreaModal(): JSX.Element {
                 <p style={{ marginBottom: '1rem' }}>
                   Click the button below to join the game once ready!
                 </p>
-                <Button colorScheme='blue' size='lg' onClick={handleJoinGame}>
+                <Button
+                  colorScheme="blue"
+                  size="lg"
+                  onClick={handleJoinGame}
+                  isDisabled={!coveymonAreaController}>
                   Join Game
                 </Button>
               </ModalBody>

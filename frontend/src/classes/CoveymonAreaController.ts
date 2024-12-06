@@ -70,7 +70,6 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
     return {
       id: this.id,
       occupantsByID: this.occupants.map(player => player.id),
-      players: this._players,
     };
   }
 
@@ -91,11 +90,12 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async joinGame(): Promise<void> {
     try {
-      await this._townController.sendInteractableCommand({
+      this.emit('coveymonGameCommand', {
         id: this._id,
         type: 'JOIN',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
       throw new Error(`Error joining the game: ${(error as Error).message}`);
     }
@@ -106,19 +106,15 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async leaveGame() {
     try {
-      await this._townController.sendInteractableCommand({
+      this.emit('coveymonGameCommand', {
         id: this._id,
-        type: 'JOIN',
+        type: 'LEAVE',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
       throw new Error(`Error leaving the game: ${(error as Error).message}`);
     }
-  }
-
-  updateFrom(interactable: CoveymonAreaModel) {
-    this._players = interactable.players;
-    this.emit('playersUpdated', this._players);
   }
 
   public async updatePlayers() {

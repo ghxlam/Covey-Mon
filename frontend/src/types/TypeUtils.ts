@@ -15,5 +15,5 @@ export function isViewingArea(interactable: Interactable): interactable is Viewi
 }
 
 export function isCoveymon(interactable: Interactable): interactable is CoveymonArea {
-  return 'players' in interactable;
+  return 'occupantsByID' in interactable;
 }
