@@ -77,7 +77,8 @@ export interface ViewingArea {
 export interface CoveymonArea {
   id: string,
   occupantsByID: string[],
-  Coveymon?: Pokemon;
+  Coveymon1?: Pokemon;
+  Coveymon2?: Pokemon;
 }
 
 export interface CoveymonGameCommand {

@@ -1,5 +1,6 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 // import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
+import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
 import {
   BoundingBox,
   CoveymonArea as ConveymonAreaModel,
@@ -38,7 +39,7 @@ export default class CoveymonArea extends InteractableArea {
     if (playerExists) {
       throw new Error('The same player cannot join twice!');
     }
-
+    // make it so that player gets pokemon assigned when joining
     this._players.push(player);
   }
 
@@ -51,7 +52,8 @@ export default class CoveymonArea extends InteractableArea {
 
   // getting errors with attack, will fix later
 
-  /* public Attack(attackingcoveymon: Pokemon, move: string, defendingCoveymon: Pokemon) {
+  public Attack(attackingcoveymon: Pokemon, defendingCoveymon: Pokemon, move: string) {
+    // use player id associated with pokemon to get pokemon stats and attack
     let crit = 0;
     if (Math.random() * 100 >= 7) {
       // calculates the critical hit chance for the pokemon
@@ -71,7 +73,7 @@ export default class CoveymonArea extends InteractableArea {
     }
     const random = Math.floor(Math.random() * (255 - 217 + 1) + 217) / 255;
     defendingCoveymon.takeDamage(damage * random);
-  } */
+  }
 
   public remove(player: Player) {
     super.remove(player);

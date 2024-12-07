@@ -1,6 +1,8 @@
 export default class Pokemon {
   public pokemonName: string;
 
+  public userID: string;
+
   public pokemonType: string[];
 
   private _pokemonMaxHealth: number;
@@ -20,6 +22,7 @@ export default class Pokemon {
   
   constructor(
     Name: string,
+    userID: string,
     Type: string[],
     maxHealth: number,
     currentHealth: number,
@@ -28,6 +31,7 @@ export default class Pokemon {
     attack: number,
   ) {
     this.pokemonName = Name;
+    this.userID = userID
     this.pokemonType = Type;
     this._pokemonMaxHealth = maxHealth;
     this.pokemonCurrentHealth = currentHealth;
@@ -38,6 +42,10 @@ export default class Pokemon {
 
   public getName(): string {
     return this.pokemonName;
+  }
+
+  public getID(): string {
+    return this.userID;
   }
 
   public getMoves(): string[]{
