@@ -5,7 +5,6 @@ import TypedEmitter from 'typed-emitter';
 import {
   CoveymonArea as CoveymonAreaModel,
   CoveymonGameCommand,
-  CoveyTownSocket,
   Player,
 } from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
@@ -95,10 +94,10 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
         type: 'JOIN',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
       throw new Error(`Error joining the game: ${(error as Error).message}`);
     }
-    this.updatePlayers();
   }
 
   /**
@@ -111,10 +110,10 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
         type: 'LEAVE',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
       throw new Error(`Error leaving the game: ${(error as Error).message}`);
     }
-    this.updatePlayers();
   }
 
   public async updatePlayers() {

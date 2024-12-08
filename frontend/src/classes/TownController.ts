@@ -13,10 +13,6 @@ import {
   ChatMessage,
   CoveymonGameCommand,
   CoveyTownSocket,
-  InteractableCommand,
-  InteractableCommandBase,
-  InteractableCommandResponse,
-  InteractableID,
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
@@ -28,11 +24,7 @@ import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import CoveymonAreaController from './CoveymonAreaController';
 import CoveymonArea from '../components/Town/interactables/CovyemonArea';
-import { nanoid } from 'nanoid';
-
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
-const SOCKET_COMMAND_TIMEOUT_MS = 5000; // Timeout duration
-
 export type ConnectionProperties = {
   userName: string;
   townID: string;
@@ -118,10 +110,6 @@ export type TownEvents = {
  *
  */
 export default class TownController extends (EventEmitter as new () => TypedEmitter<TownEvents>) {
-  sendInteractableCommand(id: string, arg1: { type: string; gameID: string }) {
-    throw new Error('Method not implemented.');
-  }
-
   /** The socket connection to the townsService. Messages emitted here
    * are received by the TownController in that service.
    */
@@ -476,7 +464,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     });
     //get updated player array from back end.
     this._socket.on('playersUpdated', (newPlayers: Player[]) => {
-      this._coveymonPlayers = newPlayers;
+      try {
+        if (!Array.isArray(newPlayers)) throw new Error('Received malformed player data.');
+        this._coveymonPlayers = newPlayers;
+      } catch (error) {
+        console.error('Error handling playersUpdated event:', error);
+      }
     });
   }
 
