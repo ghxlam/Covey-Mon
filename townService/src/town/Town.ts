@@ -191,6 +191,17 @@ export default class Town {
       }
     });
 
+    /*
+    socket.on('coveymonAttackCommand', (command: CoveymonAttackCommand) => {
+      const coveymonGameArea = this._interactables.find(
+        interactable => interactable.id === command.id,
+      ) as CoveymonArea;
+      if (coveymonGameArea) {
+        coveymonGameArea.Attack(command.Coveymon, command.move, command.Coveymon);
+      }
+    });
+    */
+
     return newPlayer;
   }
 

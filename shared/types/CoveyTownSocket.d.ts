@@ -77,7 +77,9 @@ export interface ViewingArea {
 
 export interface CoveymonArea {
   id: string,
-  occupantsByID: string[];
+  occupantsByID: string[],
+  Coveymon1?: Pokemon;
+  Coveymon2?: Pokemon;
 }
 
 export interface CoveymonGameCommand {
@@ -86,8 +88,12 @@ export interface CoveymonGameCommand {
   player: Player
 }
 
-export interface GetPlayers {
-  gameID: string;
+
+export interface CoveymonAttackCommand {
+  id: string,
+  player: Player,
+  Coveymon: Pokemon,
+  move: string,
 }
 
 export interface ServerToClientEvents {
@@ -107,5 +113,5 @@ export interface ClientToServerEvents {
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
   coveymonGameCommand: (command: CoveymonGameCommand) => void;
-  getPlayers: (GameId: string) => void;
+  coveymonAttackCommand: (command: CoveymonAttackCommand) => void;
 }
