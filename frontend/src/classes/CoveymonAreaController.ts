@@ -2,13 +2,19 @@ import EventEmitter from 'events';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import TypedEmitter from 'typed-emitter';
-import { CoveymonArea as CoveymonAreaModel } from '../types/CoveyTownSocket';
+import {
+  CoveymonArea as CoveymonAreaModel,
+  CoveymonGameCommand,
+  Player,
+} from '../types/CoveyTownSocket';
 import PlayerController from './PlayerController';
 import TownController from './TownController';
 
 export type CoveymonAreaEvents = {
   occupantsChange: (newOccupants: PlayerController[]) => void;
   playerJoined: (newPlayer: PlayerController) => void;
+  playersUpdated: (newPlayers: Player[]) => void;
+  coveymonGameCommand: (command: CoveymonGameCommand) => void;
 };
 
 export const PLAYER_NOT_IN_GAME_ERROR = 'Player is not in game';
@@ -19,9 +25,9 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
 
   private _id: string;
 
-  private _townController: TownController; // Added TownController
+  private _townController: TownController;
 
-  protected _players: PlayerController[] = [];
+  private _players: Player[] = [];
 
   constructor(id: string, townController: TownController) {
     super();
@@ -31,6 +37,10 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
 
   get id() {
     return this._id;
+  }
+
+  get townController() {
+    return this._townController;
   }
 
   set occupants(newOccupants: PlayerController[]) {
@@ -45,6 +55,10 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
 
   get occupants() {
     return this._occupants;
+  }
+
+  public get players() {
+    return this._players;
   }
 
   isEmpty(): boolean {
@@ -75,14 +89,13 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async joinGame(): Promise<void> {
     try {
-      // Now using the _townController to emit the game update
-      this._townController.emitCovemonGameUpdate({
+      this.emit('coveymonGameCommand', {
         id: this._id,
         type: 'JOIN',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
-      // Log or rethrow the error for the caller to handle
       throw new Error(`Error joining the game: ${(error as Error).message}`);
     }
   }
@@ -92,15 +105,22 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
    */
   public async leaveGame() {
     try {
-      // Using the _townController to emit the game update for leaving the game
-      this._townController.emitCovemonGameUpdate({
+      this.emit('coveymonGameCommand', {
         id: this._id,
         type: 'LEAVE',
         player: this._townController.ourPlayer,
       });
+      await this.updatePlayers();
     } catch (error) {
-      // Log or rethrow the error for the caller to handle
       throw new Error(`Error leaving the game: ${(error as Error).message}`);
+    }
+  }
+
+  public async updatePlayers() {
+    try {
+      this._players = this._townController.coveymonPlayerUpdate;
+    } catch (err) {
+      throw new Error(`Error getting player array update:  ${(err as Error).message}`);
     }
   }
 }

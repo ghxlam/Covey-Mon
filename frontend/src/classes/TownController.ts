@@ -13,13 +13,10 @@ import {
   ChatMessage,
   CoveymonGameCommand,
   CoveyTownSocket,
-  InteractableCommand,
-  InteractableCommandBase,
-  InteractableCommandResponse,
-  InteractableID,
   PlayerLocation,
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
+  Player,
 } from '../types/CoveyTownSocket';
 import { isConversationArea, isCoveymon, isViewingArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
@@ -27,11 +24,7 @@ import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import CoveymonAreaController from './CoveymonAreaController';
 import CoveymonArea from '../components/Town/interactables/CovyemonArea';
-import { nanoid } from 'nanoid';
-
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
-const SOCKET_COMMAND_TIMEOUT_MS = 5000; // Timeout duration
-
 export type ConnectionProperties = {
   userName: string;
   townID: string;
@@ -75,6 +68,8 @@ export type TownEvents = {
   conversationAreasChanged: (currentConversationAreas: ConversationAreaController[]) => void;
 
   coveymonChanged: (currentCoveymonAreas: CoveymonAreaController[]) => void;
+
+  playersUpdated: (players: Player[]) => void;
   /**
    * An event that indicates that the set of viewing areas has changed. This event is emitted after updating
    * the town controller's record of viewing areas.
@@ -115,10 +110,6 @@ export type TownEvents = {
  *
  */
 export default class TownController extends (EventEmitter as new () => TypedEmitter<TownEvents>) {
-  sendInteractableCommand(id: string, arg1: { type: string; gameID: string }) {
-    throw new Error('Method not implemented.');
-  }
-
   /** The socket connection to the townsService. Messages emitted here
    * are received by the TownController in that service.
    */
@@ -148,6 +139,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _conversationAreasInternal: ConversationAreaController[] = [];
 
   private _coveymonAreasInternal: CoveymonAreaController[] = [];
+
+  private _coveymonPlayers: Player[] = [];
 
   /**
    * The friendly name of the current town, set only once this TownController is connected to the townsService
@@ -317,6 +310,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this.emit('coveymonChanged', newCoveymonAreas);
   }
 
+  public get coveymonPlayerUpdate() {
+    return this._coveymonPlayers;
+  }
+
   private set _conversationAreas(newConversationAreas: ConversationAreaController[]) {
     this._conversationAreasInternal = newConversationAreas;
     this.emit('conversationAreasChanged', newConversationAreas);
@@ -463,6 +460,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             this.emit('coveymonChanged', this._coveymonAreasInternal);
           }
         }
+      }
+    });
+    //get updated player array from back end.
+    this._socket.on('playersUpdated', (newPlayers: Player[]) => {
+      try {
+        if (!Array.isArray(newPlayers)) throw new Error('Received malformed player data.');
+        this._coveymonPlayers = newPlayers;
+      } catch (error) {
+        console.error('Error handling playersUpdated event:', error);
       }
     });
   }

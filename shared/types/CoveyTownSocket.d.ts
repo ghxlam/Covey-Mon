@@ -34,6 +34,7 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
+  Pokemon?: Pokemon;
 };
 
 export type XY = { x: number, y: number };
@@ -87,6 +88,7 @@ export interface CoveymonGameCommand {
   player: Player
 }
 
+
 export interface CoveymonAttackCommand {
   id: string,
   player: Player,
@@ -103,6 +105,7 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+  playersUpdated: (players: PLayer[]) => void
 }
 
 export interface ClientToServerEvents {

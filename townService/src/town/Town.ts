@@ -107,7 +107,7 @@ export default class Town {
 
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
-   * player, and returning them
+   * player, and returning themN PROGRESS
    *
    * @param newPlayer The new player to add to the town
    */
@@ -115,7 +115,7 @@ export default class Town {
     const newPlayer = new Player(userName, socket.to(this._townID));
     this._players.push(newPlayer);
 
-    this._connectedSockets.add(socket);
+    this._connectedSockets.add(socket); 
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -161,20 +161,33 @@ export default class Town {
     });
 
     socket.on('coveymonGameCommand', (command: CoveymonGameCommand) => {
-      const coveymonGameArea = this._interactables.find(
-        interactable => interactable.id === command.id,
-      ) as CoveymonArea;
-      if (coveymonGameArea) {
-        switch (command.type) {
-          case 'JOIN':
-            coveymonGameArea.join(command.player);
+      try {
+        const coveymonGameArea = this._interactables.find(
+          interactable => interactable.id === command.id,
+        ) as CoveymonArea;
+
+        if (coveymonGameArea) {
+          switch (command.type) {
+            case 'JOIN':
+              coveymonGameArea.join(command.player);
+              this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
+            case 'LEAVE':
+              coveymonGameArea.leave(command.player);
+            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
             break;
-          case 'LEAVE':
-            coveymonGameArea.leave(command.player);
-            break;
-          default: // TODO: when a response handler on the frontend is implemented, return an error here
-            break;
+            default:
+              // Log a warning if an unsupported command type is received
+              console.log(`Unhandled command type: ${command.type}`);
+              break;
+          }
+        } else {
+          // Handle the case where the specified interactable is not found
+          throw new Error(`CoveymonGameArea with id ${command.id} not found.`);
         }
+      } catch (error) {
+        console.log('Error processing coveymonGameCommand:', error);
+        // Optionally, emit an error event or take corrective action
       }
     });
 

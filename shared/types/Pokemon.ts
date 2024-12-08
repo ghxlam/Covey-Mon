@@ -1,8 +1,6 @@
 export default class Pokemon {
   public pokemonName: string;
 
-  public userID: string;
-
   public pokemonType: string[];
 
   private _pokemonMaxHealth: number;
@@ -15,12 +13,13 @@ export default class Pokemon {
 
   public pokemonAttack: number;
 
+
   private pokemonMoves: string[] = ["tackle","bite","punch","kick"]; // figure out how to set moves
 
   private pokemonMovesPower: number[] = [40,20,30,50];
 
   
-  constructor(
+  constructor (
     Name: string,
     userID: string,
     Type: string[],
@@ -30,7 +29,6 @@ export default class Pokemon {
     defense: number,
     attack: number,
   ) {
-    this.pokemonName = Name;
     this.userID = userID
     this.pokemonType = Type;
     this._pokemonMaxHealth = maxHealth;
@@ -43,7 +41,6 @@ export default class Pokemon {
   public getName(): string {
     return this.pokemonName;
   }
-
   public getID(): string {
     return this.userID;
   }
@@ -60,7 +57,6 @@ export default class Pokemon {
     }
     return -1; // if you get -1 then there is an error
   }
-
   public getType(): string[] {
     return this.pokemonType;
   }

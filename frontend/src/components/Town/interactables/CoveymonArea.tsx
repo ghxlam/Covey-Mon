@@ -1,3 +1,8 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import useTownController from '../../../hooks/useTownController';
+import { Player } from '../../../types/CoveyTownSocket';
+import CoveymonAreaController from '../../../classes/CoveymonAreaController';
+import PokeDex from './pokeDex';
 import {
   Button,
   Modal,
@@ -8,34 +13,40 @@ import {
   ModalOverlay,
   useToast,
 } from '@chakra-ui/react';
-import React, { useCallback, useEffect, useState } from 'react';
-import useTownController from '../../../hooks/useTownController';
 import { useInteractable } from '../../../classes/TownController';
-import CoveymonBattles from './CoveymonBattles'; // Import the CoveymonBattles component
-import CoveymonAreaController from '../../../classes/CoveymonAreaController';
-
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
-  const [isBattlesModalOpen, setBattlesModalOpen] = useState(false); // State to control the CoveymonBattles modal
-  const coveymon = useInteractable('coveymonArea'); // Interact with CoveymonArea directly
+  const [, setPlayers] = useState<Player[]>([]);
+  const coveymon = useInteractable('coveymonArea');
   const coveyTownController = useTownController();
   const toast = useToast();
 
-  // Initialize CoveymonAreaController
   const [coveymonAreaController, setCoveymonAreaController] =
     useState<CoveymonAreaController | null>(null);
 
-  // Set up CoveymonAreaController when userID is available
   useEffect(() => {
     if (coveyTownController?.userID) {
-      setCoveymonAreaController(
-        new CoveymonAreaController(coveyTownController.userID, coveyTownController),
+      const controller = new CoveymonAreaController(
+        coveyTownController.userID,
+        coveyTownController,
       );
+      setCoveymonAreaController(controller);
+
+      setPlayers(controller.players);
+
+      const handlePlayersUpdated = (newPlayers: Player[]) => {
+        setPlayers(newPlayers);
+      };
+
+      controller.addListener('playersUpdated', handlePlayersUpdated);
+
+      return () => {
+        controller.removeListener('playersUpdated', handlePlayersUpdated);
+      };
     }
   }, [coveyTownController]);
 
-  // Open modal when interacting with Coveymon area
   useEffect(() => {
     if (coveymon) {
       setIsOpen(true);
@@ -46,10 +57,10 @@ export default function CoveymonAreaModal(): JSX.Element {
   const closeModal = useCallback(() => {
     setIsOpen(false);
     if (coveymon) {
-      coveyTownController.interactEnd(coveymon); // End the interaction
+      coveyTownController.interactEnd(coveymon);
     }
-    coveyTownController.unPause(); // Unpause the game when modal is closed
-    setGameState('waiting'); // Reset the game state to waiting
+    coveyTownController.unPause();
+    setGameState('waiting');
   }, [coveymon, coveyTownController]);
 
   const handleJoinGame = useCallback(async () => {
@@ -68,13 +79,12 @@ export default function CoveymonAreaModal(): JSX.Element {
       await coveymonAreaController.joinGame();
       toast({
         title: 'Success',
-        description: 'You have successfully joined the game!',
+        description: 'Welcome to pokedex, Press on a pokemon to see their stats.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
       setGameState('gameInProgress');
-      setBattlesModalOpen(true); // Open battles modal
     } catch (err) {
       toast({
         title: 'Error joining game',
@@ -107,6 +117,15 @@ export default function CoveymonAreaModal(): JSX.Element {
                   isDisabled={!coveymonAreaController}>
                   Join Game
                 </Button>
+              </ModalBody>
+            </>
+          )}
+          {gameState === 'gameInProgress' && (
+            <>
+              <ModalHeader></ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <PokeDex />
               </ModalBody>
             </>
           )}

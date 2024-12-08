@@ -39,6 +39,7 @@ export default class CoveymonArea extends InteractableArea {
     if (playerExists) {
       throw new Error('The same player cannot join twice!');
     }
+
     // make it so that player gets pokemon assigned when joining
     this._players.push(player);
   }
