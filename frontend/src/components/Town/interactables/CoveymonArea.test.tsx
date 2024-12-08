@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChakraProvider } from '@chakra-ui/react';
-import { cleanup, render, RenderResult, fireEvent, screen } from '@testing-library/react';
+import { cleanup, render, fireEvent, screen } from '@testing-library/react';
 import { mock, MockProxy } from 'jest-mock-extended';
 import TownController from '../../../classes/TownController';
 import TownControllerContext from '../../../contexts/TownControllerContext';
@@ -12,7 +12,6 @@ jest.mock('../../../classes/TownController', () => ({
 }));
 
 describe('CoveymonAreaModal', () => {
-  let renderResult: RenderResult;
   let mockTownController: MockProxy<TownController>;
 
   beforeEach(() => {
@@ -32,7 +31,7 @@ describe('CoveymonAreaModal', () => {
   });
 
   const renderWithContext = () => {
-    renderResult = render(
+    render(
       <ChakraProvider>
         <TownControllerContext.Provider value={mockTownController}>
           <CoveymonAreaModal />
