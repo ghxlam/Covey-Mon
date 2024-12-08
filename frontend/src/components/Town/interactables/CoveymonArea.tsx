@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import useTownController from '../../../hooks/useTownController';
 import { Player } from '../../../types/CoveyTownSocket';
 import CoveymonAreaController from '../../../classes/CoveymonAreaController';
-import pokeDex from './pokeDex';
+import PokeDex from './pokeDex';
 import {
   Button,
   Modal,
@@ -125,7 +125,7 @@ export default function CoveymonAreaModal(): JSX.Element {
               <ModalHeader></ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <pokeDex />
+                <PokeDex />
               </ModalBody>
             </>
           )}
