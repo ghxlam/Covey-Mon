@@ -45,11 +45,6 @@ const ParentComponent: React.FC<ParentComponentProps> = ({ players }) => {
       <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#4A90E2' }}>IN PROGRESS</h1>
       <div>
         <h2>Players in the Game:</h2>
-        <ul>
-          {players.map((player, index) => (
-            <li key={index}>{player.userName}</li>
-          ))}
-        </ul>
       </div>
       <div style={{ marginTop: '2rem' }}>
         <h2>Available Pokémon:</h2>

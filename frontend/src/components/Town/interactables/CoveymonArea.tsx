@@ -3,6 +3,7 @@ import useTownController from '../../../hooks/useTownController';
 import { Player } from '../../../types/CoveyTownSocket';
 import CoveymonAreaController from '../../../classes/CoveymonAreaController';
 import PokeDex from './pokeDex';
+import ParentComponent from './CoveymonBattles';
 import {
   Button,
   Modal,
@@ -125,7 +126,7 @@ export default function CoveymonAreaModal(): JSX.Element {
               <ModalHeader></ModalHeader>
               <ModalCloseButton />
               <ModalBody>
-                <PokeDex />
+                <ParentComponent />
               </ModalBody>
             </>
           )}
