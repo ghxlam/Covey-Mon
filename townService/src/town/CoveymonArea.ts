@@ -1,6 +1,4 @@
 import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
-// import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
-import Pokemon from 'covey-town-shared-libraries/types/Pokemon';
 import {
   BoundingBox,
   CoveymonArea as ConveymonAreaModel,
@@ -49,31 +47,6 @@ export default class CoveymonArea extends InteractableArea {
       throw new Error('The game is already empty!');
     }
     this._players = this._players.filter(currentPlayer => currentPlayer.id !== player.id);
-  }
-
-  // getting errors with attack, will fix later
-
-  public Attack(attackingcoveymon: Pokemon, defendingCoveymon: Pokemon, move: string) {
-    // use player id associated with pokemon to get pokemon stats and attack
-    let crit = 0;
-    if (Math.random() * 100 >= 7) {
-      // calculates the critical hit chance for the pokemon
-      crit = 2;
-    } else {
-      crit = 1;
-    }
-    // 50 is the level of the pokemon, we are assuming the level is 50, this can be changed later
-    const damage =
-      (((2 * 50 * crit) / 5 + 2) *
-        attackingcoveymon.getMovesPower(move) *
-        (attackingcoveymon.getAttack() / defendingCoveymon.getDefense())) /
-        50 +
-      2;
-    if (damage === 1) {
-      return 1;
-    }
-    const random = Math.floor(Math.random() * (255 - 217 + 1) + 217) / 255;
-    defendingCoveymon.takeDamage(damage * random);
   }
 
   public remove(player: Player) {
