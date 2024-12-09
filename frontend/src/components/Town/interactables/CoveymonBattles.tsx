@@ -13,7 +13,9 @@ interface Pokemon {
 interface ParentComponentProps {
   players: Player[];
 }
-
+// disabling the linter here because it doesn't detect this as a function and when we follow
+// camelCase, it doesn't allow us to call it or use the hooks inside the function.
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const ParentComponent: React.FC<ParentComponentProps> = ({ players }) => {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [availablePokemons, setAvailablePokemons] = useState<Pokemon[]>([
