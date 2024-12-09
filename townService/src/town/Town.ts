@@ -115,7 +115,7 @@ export default class Town {
     const newPlayer = new Player(userName, socket.to(this._townID));
     this._players.push(newPlayer);
 
-    this._connectedSockets.add(socket); 
+    this._connectedSockets.add(socket);
 
     // Create a video token for this user to join this town
     newPlayer.videoToken = await this._videoClient.getTokenForTown(this._townID, newPlayer.id);
@@ -174,11 +174,11 @@ export default class Town {
               break;
             case 'LEAVE':
               coveymonGameArea.leave(command.player);
-            newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
-            break;
+              newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
             default:
               // Log a warning if an unsupported command type is received
-              console.log(`Unhandled command type: ${command.type}`);
+              // console.log(`Unhandled command type: ${command.type}`);
               break;
           }
         } else {
@@ -186,7 +186,7 @@ export default class Town {
           throw new Error(`CoveymonGameArea with id ${command.id} not found.`);
         }
       } catch (error) {
-        console.log('Error processing coveymonGameCommand:', error);
+        // console.log('Error processing coveymonGameCommand:', error);
         // Optionally, emit an error event or take corrective action
       }
     });
