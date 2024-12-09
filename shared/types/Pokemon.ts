@@ -1,5 +1,5 @@
 export default class Pokemon {
-  public pokemonName: string;
+  public name: string;
 
   public pokemonType: string[];
 
@@ -20,8 +20,7 @@ export default class Pokemon {
 
   
   constructor (
-    Name: string,
-    userID: string,
+    name: string,
     Type: string[],
     maxHealth: number,
     currentHealth: number,
@@ -29,20 +28,13 @@ export default class Pokemon {
     defense: number,
     attack: number,
   ) {
-    this.userID = userID
     this.pokemonType = Type;
     this._pokemonMaxHealth = maxHealth;
     this.pokemonCurrentHealth = currentHealth;
     this.pokemonSpeed = speed;
     this.pokemonDefense = defense;
     this.pokemonAttack = attack;
-  }
-
-  public getName(): string {
-    return this.pokemonName;
-  }
-  public getID(): string {
-    return this.userID;
+    this.name = name;
   }
 
   public getMoves(): string[]{
@@ -57,6 +49,7 @@ export default class Pokemon {
     }
     return -1; // if you get -1 then there is an error
   }
+
   public getType(): string[] {
     return this.pokemonType;
   }
@@ -90,6 +83,10 @@ export default class Pokemon {
 
   public setCurrentHealth(health: number) {
     this.pokemonCurrentHealth = health;
+  }
+
+  public get getname(): string{
+    return this.name;
   }
 
   public takeDamage(Damage: number) {

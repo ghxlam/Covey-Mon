@@ -1,6 +1,5 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useState } from 'react';
-import { Player } from '../../../types/CoveyTownSocket';
-
 interface Pokemon {
   id: number;
   name: string;
@@ -10,15 +9,12 @@ interface Pokemon {
   moves: string[];
 }
 
-interface ParentComponentProps {
-  players: Player[];
-}
 // disabling the linter here because it doesn't detect this as a function and when we follow
 // camelCase, it doesn't allow us to call it or use the hooks inside the function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const ParentComponent: React.FC<ParentComponentProps> = ({ players }) => {
+const ParentComponent: React.FC = () => {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
-  const [availablePokemons, setAvailablePokemons] = useState<Pokemon[]>([
+  const [availablePokemons] = useState<Pokemon[]>([
     /* Placeholder data FOR NOW. Replace this with API integration whenever we figure out whats wrong. */
     {
       id: 1,
