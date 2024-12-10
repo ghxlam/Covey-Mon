@@ -50,10 +50,7 @@ const getPokemon = async (): Promise<Pokemon[]> => {
       const sprite = pokemon.sprites.front_default; // front facing image
 
       const moves = pokemon.moves.map((move: { move: { name: string } }) => move.move.name);
-      const pickedMoves = [];
-      for (let j = 0; j < 4; j++) {
-        pickedMoves.push(Math.floor(Math.random() * moves.length + 1));
-      }
+
       allPokemon.push({
         id: i + 1,
         name: pokemon.name,

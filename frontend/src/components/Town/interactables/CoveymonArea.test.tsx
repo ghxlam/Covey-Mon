@@ -63,7 +63,11 @@ describe('CoveymonAreaModal', () => {
     // Ensure the unPause function was called
     expect(mockTownController.unPause).toHaveBeenCalled();
     // Ensure the modal content disappears
-    expect(screen.queryByText('Join the Game')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        '<header class="chakra-modal__header css-9fgtzh" id="chakra-modal--header-1">Join the Game</header>',
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('shows pokedex when the game is in progress', () => {
@@ -74,6 +78,8 @@ describe('CoveymonAreaModal', () => {
     fireEvent.click(joinGameButton);
 
     // Ensure pokedex message is displayed
-    expect(screen.getByText('Press on a pokemon to see their stats.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Welcome to pokedex, Press on a pokemon to see their stats.'),
+    ).toBeInTheDocument();
   });
 });
