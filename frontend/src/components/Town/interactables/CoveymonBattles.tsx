@@ -1,38 +1,113 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState } from 'react';
+interface Stat {
+  base_stat: number;
+  stat: {
+    name: string;
+    url: string;
+  };
+}
+
 interface Pokemon {
   id: number;
   name: string;
-  imageUrl: string;
+  sprite: string;
+  currHealth: number;
   health: number;
-  maxHealth: number;
+  attack: number;
+  defense: number;
   moves: string[];
 }
 
+const getPokemon = async (): Promise<Pokemon[]> => {
+  try {
+    // Fetch all Kanto region Pokémon (151 total)
+    const response = await fetch('https://pokeapi.co/api/v2/pokedex/kanto');
+    const data = await response.json();
+    const pokemonList = data.pokemon_entries;
+    const allPokemon: Pokemon[] = [];
+
+    // Loop through each Pokémon in the Kanto region
+    for (let i = 0; i < pokemonList.length; i++) {
+      const pokemonName = pokemonList[i].pokemon_species.name;
+      const pokemonDataResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+      const pokemon = await pokemonDataResponse.json();
+
+      const stats = pokemon.stats.reduce(
+        (acc: { health: number; attack: number; defense: number }, stat: Stat) => {
+          if (stat.stat.name === 'hp') {
+            acc.health = stat.base_stat;
+          } else if (stat.stat.name === 'attack') {
+            acc.attack = stat.base_stat;
+          } else if (stat.stat.name === 'defense') {
+            acc.defense = stat.base_stat;
+          }
+          return acc;
+        },
+        { health: 0, attack: 0, defense: 0 },
+      );
+
+      const sprite = pokemon.sprites.front_default; // front facing image
+
+      const moves = pokemon.moves.map((move: { move: { name: string } }) => move.move.name);
+      const pickedMoves = [];
+      for (let j = 0; j < 4; j++) {
+        pickedMoves.push(Math.floor(Math.random() * moves.length + 1));
+      }
+      allPokemon.push({
+        id: i + 1,
+        name: pokemon.name,
+        sprite: sprite,
+        currHealth: Math.floor(Math.random() * stats.health + 1),
+        health: stats.health,
+        attack: stats.attack,
+        defense: stats.defense,
+        moves: [
+          moves[Math.floor(Math.random() * moves.length + 1)],
+          moves[Math.floor(Math.random() * moves.length + 1)],
+          moves[Math.floor(Math.random() * moves.length + 1)],
+          moves[Math.floor(Math.random() * moves.length + 1)],
+        ],
+      });
+    }
+
+    return allPokemon;
+  } catch (error) {
+    console.error('Error fetching data from PokeAPI:', error);
+    return [];
+  }
+};
 // disabling the linter here because it doesn't detect this as a function and when we follow
 // camelCase, it doesn't allow us to call it or use the hooks inside the function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ParentComponent: React.FC = () => {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
-  const [availablePokemons] = useState<Pokemon[]>([
-    /* Placeholder data FOR NOW. Replace this with API integration whenever we figure out whats wrong. */
-    {
+  const [availablePokemons] = useState<Pokemon[]>([]);
+  getPokemon().then(allPokemon => {
+    allPokemon.forEach(function (pokemon) {
+      availablePokemons.push(pokemon);
+    });
+  });
+
+  /* Placeholder data FOR NOW. Replace this with API integration whenever we figure out whats wrong. */
+  /*{
       id: 1,
       name: 'Pikachu',
-      imageUrl: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png',
-      health: 80,
-      maxHealth: 100,
+      sprite: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png',
+      health: 100,
+      attack: 50,
+      defense: 70,
       moves: ['Thunder Shock', 'Quick Attack', 'Iron Tail', 'Electro Ball'],
     },
     {
       id: 2,
       name: 'Charizard',
-      imageUrl: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/006.png',
-      health: 120,
-      maxHealth: 150,
+      sprite: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/006.png',
+      health: 150,
+      attack: 50,
+      defense: 70,
       moves: ['Flamethrower', 'Dragon Claw', 'Fly', 'Fire Spin'],
-    },
-  ]);
+    },*/
 
   const handleSelectPokemon = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
@@ -61,7 +136,7 @@ const ParentComponent: React.FC = () => {
               }}
               onClick={() => handleSelectPokemon(pokemon)}>
               <img
-                src={pokemon.imageUrl}
+                src={pokemon.sprite}
                 alt={pokemon.name}
                 style={{ width: '100%', borderRadius: '10px' }}
               />
@@ -76,13 +151,13 @@ const ParentComponent: React.FC = () => {
                 }}>
                 <div
                   style={{
-                    width: `${(pokemon.health / pokemon.maxHealth) * 100}%`,
+                    width: `${(pokemon.currHealth / pokemon.health) * 100}%`,
                     backgroundColor: '#4caf50',
                     height: '100%',
                   }}></div>
               </div>
               <p>
-                {pokemon.health} / {pokemon.maxHealth} HP
+                {pokemon.currHealth} / {pokemon.health} HP
               </p>
             </div>
           ))}
@@ -92,7 +167,7 @@ const ParentComponent: React.FC = () => {
         <div style={{ marginTop: '2rem' }}>
           <h2>Selected Pokémon: {selectedPokemon.name}</h2>
           <img
-            src={selectedPokemon.imageUrl}
+            src={selectedPokemon.sprite}
             alt={selectedPokemon.name}
             style={{ width: '150px', borderRadius: '10px' }}
           />
