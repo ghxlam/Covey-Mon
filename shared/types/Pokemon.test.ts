@@ -12,7 +12,7 @@ describe('Pokemon', () => {
 
   describe('creates a pokemon', () => {
     it('should create a Pokemon instance with the correct properties', () => {
-      expect(pokemon.getName()).toBe('Pikachu');
+      expect(pokemon.getname()).toBe('Pikachu');
       expect(pokemon.getType()).toEqual(['Electric']);
       expect(pokemon.getMaxHealth()).toBe(100);
       expect(pokemon.getCurrentHealth()).toBe(100);

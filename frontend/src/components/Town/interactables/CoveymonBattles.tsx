@@ -16,7 +16,7 @@ interface Pokemon {
   health: number;
   attack: number;
   defense: number;
-  moves: string[];
+  moves: { name: string; power: number | null }[];
 }
 
 const getPokemon = async (): Promise<Pokemon[]> => {
@@ -26,6 +26,18 @@ const getPokemon = async (): Promise<Pokemon[]> => {
     const data = await response.json();
     const pokemonList = data.pokemon_entries;
     const allPokemon: Pokemon[] = [];
+
+    // Function to fetch move details
+    const getMovePower = async (moveName: string): Promise<number | null> => {
+      try {
+        const moveResponse = await fetch(`https://pokeapi.co/api/v2/move/${moveName}`);
+        const moveData = await moveResponse.json();
+        return moveData.power !== null ? moveData.power : null;
+      } catch (error) {
+        console.error('Error fetching move data:', error);
+        return null;
+      }
+    };
 
     // Loop through each Pokémon in the Kanto region
     for (let i = 0; i < pokemonList.length; i++) {
@@ -47,24 +59,26 @@ const getPokemon = async (): Promise<Pokemon[]> => {
         { health: 0, attack: 0, defense: 0 },
       );
 
-      const sprite = pokemon.sprites.front_default; // front facing image
+      const sprite = pokemon.sprites.front_default; // Default front facing image
 
       const moves = pokemon.moves.map((move: { move: { name: string } }) => move.move.name);
 
+      const pickedMoves = [];
+      for (let j = 0; j < 4; j++) {
+        const moveName = moves[Math.floor(Math.random() * moves.length)];
+        const movePower = await getMovePower(moveName);
+        pickedMoves.push({ name: moveName, power: movePower });
+      }
+
       allPokemon.push({
-        id: i + 1,
+        id: i,
         name: pokemon.name,
-        sprite: sprite,
-        currHealth: Math.floor(Math.random() * stats.health + 1),
-        health: stats.health,
         attack: stats.attack,
         defense: stats.defense,
-        moves: [
-          moves[Math.floor(Math.random() * moves.length + 1)],
-          moves[Math.floor(Math.random() * moves.length + 1)],
-          moves[Math.floor(Math.random() * moves.length + 1)],
-          moves[Math.floor(Math.random() * moves.length + 1)],
-        ],
+        currHealth: Math.floor(Math.random() * stats.health + 1),
+        health: stats.health,
+        sprite: sprite,
+        moves: pickedMoves,
       });
     }
 
@@ -74,16 +88,19 @@ const getPokemon = async (): Promise<Pokemon[]> => {
     return [];
   }
 };
+
 // disabling the linter here because it doesn't detect this as a function and when we follow
 // camelCase, it doesn't allow us to call it or use the hooks inside the function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ParentComponent: React.FC = () => {
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
+  let bot: Pokemon; // bot assigned pokemon
   const [availablePokemons] = useState<Pokemon[]>([]);
   getPokemon().then(allPokemon => {
     allPokemon.forEach(function (pokemon) {
       availablePokemons.push(pokemon);
     });
+    bot = availablePokemons[Math.floor(Math.random() * availablePokemons.length + 1)]; // got get randomly assigned pokemon
   });
 
   /* Placeholder data FOR NOW. Replace this with API integration whenever we figure out whats wrong. */
