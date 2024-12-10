@@ -89,6 +89,12 @@ const getPokemon = async (): Promise<Pokemon[]> => {
   }
 };
 
+// once a player picks a move, an turn function runs called turn
+//turn takes 3 parameters (player pokemon, bot pokemon, and the move player chose) which picks either 1 or 2 and then goes from there for who goes first
+// damage works by taking two parameters, the move and the attacking pokemon
+// using the move's power and the pokemons stats, damage is assigned to the pokemon
+// even if we dont have a bot, we can just have a button to do damage to the chosen pokemon (covers user story 3)
+
 // disabling the linter here because it doesn't detect this as a function and when we follow
 // camelCase, it doesn't allow us to call it or use the hooks inside the function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
