@@ -14,6 +14,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { useInteractable } from '../../../classes/TownController';
+
 export default function CoveymonAreaModal(): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [gameState, setGameState] = useState<'waiting' | 'gameInProgress'>('waiting');
@@ -79,7 +80,7 @@ export default function CoveymonAreaModal(): JSX.Element {
       await coveymonAreaController.joinGame();
       toast({
         title: 'Success',
-        description: 'Welcome to pokedex, Press on a pokemon to see their stats.',
+        description: 'Welcome to our Pokemon Game, Press on a pokemon to see their stats!',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -104,18 +105,18 @@ export default function CoveymonAreaModal(): JSX.Element {
         <ModalContent>
           {gameState === 'waiting' && (
             <>
-              <ModalHeader>Join the Game</ModalHeader>
+              <ModalHeader>Play Pokemon in CoveyTown</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
                 <p style={{ marginBottom: '1rem' }}>
-                  Click the button below to join the game once ready!
+                  Click the button below to start the game once ready!
                 </p>
                 <Button
                   colorScheme='blue'
                   size='lg'
                   onClick={handleJoinGame}
                   isDisabled={!coveymonAreaController}>
-                  Join Game
+                  Start Game
                 </Button>
               </ModalBody>
             </>

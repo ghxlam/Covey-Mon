@@ -1,6 +1,3 @@
-import exp from "constants";
-import Pokemon from "./Pokemon";
-
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
@@ -88,6 +85,22 @@ export interface CoveymonGameCommand {
   player: Player
 }
 
+export interface Move {
+  name: string;
+  power: number | null;
+}
+
+export interface Pokemon {
+  id: number;
+  name: string;
+  sprite: string;
+  currHealth: number;
+  health: number;
+  attack: number;
+  defense: number;
+  moves: Move[];
+  maxHealth: number;
+}
 
 export interface CoveymonAttackCommand {
   id: string,
