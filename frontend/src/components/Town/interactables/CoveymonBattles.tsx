@@ -105,7 +105,7 @@ const ParentComponent: React.FC = () => {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#4A90E2' }}>POKEMON GAME</h1>
+      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#4A90E2' }}>COVEYMON</h1>
       {!isBattleStarted && (
         <div style={{ marginTop: '2rem' }}>
           <h2>Available Pokemon:</h2>

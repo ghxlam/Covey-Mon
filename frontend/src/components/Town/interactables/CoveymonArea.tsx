@@ -82,7 +82,7 @@ export default function CoveymonAreaModal(): JSX.Element {
         title: 'Success',
         description: 'Welcome to our Pokemon Game, Press on a pokemon to see their stats!',
         status: 'success',
-        duration: 5000,
+        duration: 3000,
         isClosable: true,
       });
       setGameState('gameInProgress');

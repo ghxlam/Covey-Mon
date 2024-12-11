@@ -63,10 +63,11 @@ const getPokemon = async (): Promise<Pokemon[]> => {
         continue;
       }
 
+      const scaledHealthFactor = 3; // To make the Pokemon Health better to have longer battles
       const stats = pokemonData.stats.reduce(
         (acc: { health: number; attack: number; defense: number }, stat: Stat) => {
           if (stat.stat.name === 'hp') {
-            acc.health = stat.base_stat;
+            acc.health = stat.base_stat * scaledHealthFactor;
           } else if (stat.stat.name === 'attack') {
             acc.attack = stat.base_stat;
           } else if (stat.stat.name === 'defense') {
