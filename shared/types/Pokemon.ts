@@ -85,7 +85,7 @@ export default class Pokemon {
     this.pokemonCurrentHealth = health;
   }
 
-  public get getname(): string{
+  public getname(): string{
     return this.name;
   }
 
