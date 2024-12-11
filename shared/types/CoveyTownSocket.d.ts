@@ -1,5 +1,3 @@
-import exp from "constants";
-
 export type TownJoinResponse = {
   /** Unique ID that represents this player * */
   userID: string;
@@ -19,12 +17,7 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea | GameArea;
-export interface GaneArea {
-    type: Interactable;
-    id: InteractableID;
-    occupants: PlayerID[];
-}
+export type Interactable = ViewingArea | ConversationArea | CoveymonArea;
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -38,6 +31,7 @@ export interface Player {
   id: PlayerID;
   userName: string;
   location: PlayerLocation;
+  Pokemon?: Pokemon;
 };
 
 export type XY = { x: number, y: number };
@@ -78,6 +72,43 @@ export interface ViewingArea {
   elapsedTimeSec: number;
 }
 
+export interface CoveymonArea {
+  id: string,
+  occupantsByID: string[],
+  Coveymon1?: Pokemon;
+  Coveymon2?: Pokemon;
+}
+
+export interface CoveymonGameCommand {
+  id: string,
+  type: "JOIN" | "LEAVE",
+  player: Player
+}
+
+export interface Move {
+  name: string;
+  power: number | null;
+}
+
+export interface Pokemon {
+  id: number;
+  name: string;
+  sprite: string;
+  currHealth: number;
+  health: number;
+  attack: number;
+  defense: number;
+  moves: Move[];
+  maxHealth: number;
+}
+
+export interface CoveymonAttackCommand {
+  id: string,
+  player: Player,
+  Coveymon: Pokemon,
+  move: string,
+}
+
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -87,10 +118,13 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+  playersUpdated: (players: PLayer[]) => void
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+  coveymonGameCommand: (command: CoveymonGameCommand) => void;
+  coveymonAttackCommand: (command: CoveymonAttackCommand) => void;
 }

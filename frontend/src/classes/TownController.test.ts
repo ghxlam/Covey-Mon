@@ -1,7 +1,7 @@
 import { mock, mockClear, MockProxy } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
 import { LoginController } from '../contexts/LoginControllerContext';
-import { ViewingArea } from '../generated/client';
+import { ViewingArea } from '../types/CoveyTownSocket';
 import {
   EventNames,
   getEventListener,

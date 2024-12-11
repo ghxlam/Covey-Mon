@@ -22,6 +22,7 @@ import {
   CoveyTownSocket,
   TownSettingsUpdate,
   ViewingArea,
+  CoveymonArea,
 } from '../types/CoveyTownSocket';
 
 /**
@@ -125,6 +126,23 @@ export class TownsController extends Controller {
       throw new InvalidParametersError('Invalid values specified');
     }
     const success = town.addConversationArea(requestBody);
+    if (!success) {
+      throw new InvalidParametersError('Invalid values specified');
+    }
+  }
+
+  @Post('{townID}/coveymonArea')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async createCoveymonArea(
+    @Path() townID: string,
+    @Header('X-Session-Token') sessionToken: string,
+    @Body() requestBody: CoveymonArea,
+  ): Promise<void> {
+    const town = this._townsStore.getTownByID(townID);
+    if (!town?.getPlayerBySessionToken(sessionToken)) {
+      throw new InvalidParametersError('Invalid values specified');
+    }
+    const success = town.addCoveymonArea(requestBody);
     if (!success) {
       throw new InvalidParametersError('Invalid values specified');
     }

@@ -14,10 +14,13 @@ import {
   ServerToClientEvents,
   SocketData,
   ViewingArea as ViewingAreaModel,
+  CoveymonArea as CoveymonAreaModel,
+  CoveymonGameCommand,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
+import CoveymonArea from './CoveymonArea';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -104,7 +107,7 @@ export default class Town {
 
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
-   * player, and returning them
+   * player, and returning themN PROGRESS
    *
    * @param newPlayer The new player to add to the town
    */
@@ -156,6 +159,49 @@ export default class Town {
         }
       }
     });
+
+    socket.on('coveymonGameCommand', (command: CoveymonGameCommand) => {
+      try {
+        const coveymonGameArea = this._interactables.find(
+          interactable => interactable.id === command.id,
+        ) as CoveymonArea;
+
+        if (coveymonGameArea) {
+          switch (command.type) {
+            case 'JOIN':
+              coveymonGameArea.join(command.player);
+              this._broadcastEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
+            case 'LEAVE':
+              coveymonGameArea.leave(command.player);
+              newPlayer.townEmitter.emit('playersUpdated', coveymonGameArea.players);
+              break;
+            default:
+              // Log a warning if an unsupported command type is received
+              // console.log(`Unhandled command type: ${command.type}`);
+              break;
+          }
+        } else {
+          // Handle the case where the specified interactable is not found
+          throw new Error(`CoveymonGameArea with id ${command.id} not found.`);
+        }
+      } catch (error) {
+        // console.log('Error processing coveymonGameCommand:', error);
+        // Optionally, emit an error event or take corrective action
+      }
+    });
+
+    /*
+    socket.on('coveymonAttackCommand', (command: CoveymonAttackCommand) => {
+      const coveymonGameArea = this._interactables.find(
+        interactable => interactable.id === command.id,
+      ) as CoveymonArea;
+      if (coveymonGameArea) {
+        coveymonGameArea.Attack(command.Coveymon, command.move, command.Coveymon);
+      }
+    });
+    */
+
     return newPlayer;
   }
 
@@ -253,6 +299,18 @@ export default class Town {
     return true;
   }
 
+  public addCoveymonArea(coveymonArea: CoveymonAreaModel): boolean {
+    const area = this._interactables.find(
+      eachArea => eachArea.id === coveymonArea.id,
+    ) as CoveymonArea;
+    if (!area) {
+      return false;
+    }
+    area.addPlayersWithinBounds(this._players);
+    this._broadcastEmitter.emit('interactableUpdate', area.toModel());
+    return true;
+  }
+
   /**
    * Creates a new viewing area in this town if there is not currently an active
    * viewing area with the same ID. The viewing area ID must match the name of a
@@ -317,7 +375,7 @@ export default class Town {
     this._connectedSockets.forEach(eachSocket => eachSocket.disconnect(true));
   }
 
-  /**
+  /** InteractableArea
    * Initializes the town's state from a JSON map, setting the "interactables" property of this town
    * to instances of InteractableArea that match each interactable in the map.
    *
@@ -351,8 +409,14 @@ export default class Town {
       .map(eachConvAreaObj =>
         ConversationArea.fromMapObject(eachConvAreaObj, this._broadcastEmitter),
       );
+    const coveymonAreas = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'coveymon')
+      .map(eacharea => CoveymonArea.fromMapObject(eacharea, this._broadcastEmitter));
 
-    this._interactables = this._interactables.concat(viewingAreas).concat(conversationAreas);
+    this._interactables = this._interactables
+      .concat(viewingAreas)
+      .concat(conversationAreas)
+      .concat(coveymonAreas);
     this._validateInteractables();
   }
 
