@@ -66,7 +66,6 @@ const getPokemon = async (): Promise<Pokemon[]> => {
       }
     };
 
-    // Loop through each Pokémon in the Kanto region
     for (const entry of pokemonList) {
       const pokemonName = entry.pokemon_species.name;
       const pokemonDataResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
