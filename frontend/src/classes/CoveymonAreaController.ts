@@ -77,7 +77,7 @@ export default class CoveymonAreaController extends (EventEmitter as new () => T
     playerFinder: (playerIDs: string[]) => PlayerController[],
     townController: TownController, // Added townController parameter
   ): CoveymonAreaController {
-    const ret = new CoveymonAreaController(coveymAreaModel.id, townController); // Pass TownController here
+    const ret = new CoveymonAreaController(coveymAreaModel.id, townController);
     ret.occupants = playerFinder(coveymAreaModel.occupantsByID);
     return ret;
   }
