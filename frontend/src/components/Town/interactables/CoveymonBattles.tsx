@@ -1,11 +1,18 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Player } from '../../../types/CoveyTownSocket';
+import { useToast } from '@chakra-ui/react';
+   
 interface Stat {
   base_stat: number;
   stat: {
     name: string;
     url: string;
   };
+
+interface Move {
+  name: string;
+  damage: number;
 }
 
 interface Pokemon {
@@ -17,6 +24,7 @@ interface Pokemon {
   attack: number;
   defense: number;
   moves: { name: string; power: number | null }[];
+  maxHealth: number;
 }
 
 const getPokemon = async (): Promise<Pokemon[]> => {
@@ -99,6 +107,7 @@ const getPokemon = async (): Promise<Pokemon[]> => {
 // camelCase, it doesn't allow us to call it or use the hooks inside the function.
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const ParentComponent: React.FC = () => {
+  const toast = useToast();
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   let bot: Pokemon; // bot assigned pokemon
   const [availablePokemons] = useState<Pokemon[]>([]);
@@ -117,7 +126,15 @@ const ParentComponent: React.FC = () => {
       health: 100,
       attack: 50,
       defense: 70,
-      moves: ['Thunder Shock', 'Quick Attack', 'Iron Tail', 'Electro Ball'],
+      imageUrl: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png',
+      health: 100,
+      maxHealth: 100,
+      moves: [
+        { name: 'Thunder Shock', damage: 20 },
+        { name: 'Quick Attack', damage: 15 },
+        { name: 'Iron Tail', damage: 25 },
+        { name: 'Electro Ball', damage: 30 },
+      ],
     },
     {
       id: 2,
@@ -129,8 +146,67 @@ const ParentComponent: React.FC = () => {
       moves: ['Flamethrower', 'Dragon Claw', 'Fly', 'Fire Spin'],
     },*/
 
+  const [computerPokemon, setComputerPokemon] = useState<Pokemon | null>(null);
+  const [playerHealth, setPlayerHealth] = useState<number>(0);
+  const [computerHealth, setComputerHealth] = useState<number>(0);
+  const [isBattleStarted, setIsBattleStarted] = useState<boolean>(false);
+  const [battleLog, setBattleLog] = useState<string[]>([]);
+
   const handleSelectPokemon = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
+  };
+
+  const handleStartBattle = () => {
+    if (selectedPokemon) {
+      const randomPokemon = availablePokemons[Math.floor(Math.random() * availablePokemons.length)];
+      setComputerPokemon(randomPokemon);
+      setPlayerHealth(selectedPokemon.maxHealth);
+      setComputerHealth(randomPokemon.maxHealth);
+      setIsBattleStarted(true);
+      setBattleLog([]);
+    }
+  };
+
+  useEffect(() => {
+    if (playerHealth <= 0 || computerHealth <= 0) {
+      setIsBattleStarted(false);
+      toast({
+        title: playerHealth <= 0 ? 'You lost!' : 'You won!',
+        description:
+          playerHealth <= 0
+            ? `${computerPokemon?.name} defeated ${selectedPokemon?.name}.`
+            : `${selectedPokemon?.name} defeated ${computerPokemon?.name}!`,
+        status: playerHealth <= 0 ? 'error' : 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  }, [playerHealth, computerHealth, toast, selectedPokemon, computerPokemon]);
+
+  const handlePlayerMove = (move: Move) => {
+    if (!computerPokemon || !selectedPokemon || playerHealth <= 0 || computerHealth <= 0) return;
+
+    // Player's attack
+    const newComputerHealth = Math.max(computerHealth - move.damage, 0);
+    setComputerHealth(newComputerHealth);
+    setBattleLog(prev => [
+      ...prev,
+      `${selectedPokemon.name} used ${move.name}! It dealt ${move.damage} damage.`,
+    ]);
+
+    if (newComputerHealth > 0) {
+      // Computer's response
+      const computerMove =
+        computerPokemon.moves[Math.floor(Math.random() * computerPokemon.moves.length)];
+      setTimeout(() => {
+        const newPlayerHealth = Math.max(playerHealth - computerMove.damage, 0);
+        setPlayerHealth(newPlayerHealth);
+        setBattleLog(prev => [
+          ...prev,
+          `${computerPokemon.name} used ${computerMove.name}! It dealt ${computerMove.damage} damage.`,
+        ]);
+      }, 1000);
+    }
   };
 
   return (
@@ -162,39 +238,95 @@ const ParentComponent: React.FC = () => {
               />
               <h3>{pokemon.name}</h3>
               <div
+                key={pokemon.id}
                 style={{
-                  backgroundColor: '#e0e0e0',
-                  borderRadius: '5px',
-                  height: '10px',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}>
-                <div
-                  style={{
-                    width: `${(pokemon.currHealth / pokemon.health) * 100}%`,
-                    backgroundColor: '#4caf50',
-                    height: '100%',
-                  }}></div>
+                  border: '1px solid #ccc',
+                  borderRadius: '10px',
+                  padding: '1rem',
+                  width: '200px',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  backgroundColor: selectedPokemon?.id === pokemon.id ? '#d0f0c0' : 'white',
+                }}
+                onClick={() => handleSelectPokemon(pokemon)}>
+                <img
+                  src={pokemon.imageUrl}
+                  alt={pokemon.name}
+                  style={{ width: '100%', borderRadius: '10px' }}
+                />
+                <h3>{pokemon.name}</h3>
               </div>
-              <p>
-                {pokemon.currHealth} / {pokemon.health} HP
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
+          {selectedPokemon && (
+            <button
+              onClick={handleStartBattle}
+              style={{ marginTop: '1rem', padding: '1rem', fontSize: '1.2rem', cursor: 'pointer' }}>
+              Start Battle
+            </button>
+          )}
         </div>
-      </div>
-      {selectedPokemon && (
-        <div style={{ marginTop: '2rem' }}>
-          <h2>Selected Pokémon: {selectedPokemon.name}</h2>
-          <img
-            src={selectedPokemon.sprite}
-            alt={selectedPokemon.name}
-            style={{ width: '150px', borderRadius: '10px' }}
-          />
-          <h3>Moves:</h3>
-          <ul>
-            {selectedPokemon.moves.map((move, index) => (
-              <li key={index}>{move}</li>
+      )}
+
+      {isBattleStarted && (
+        <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '2rem' }}>
+          <div>
+            <h3>Your Pokémon: {selectedPokemon?.name}</h3>
+            <img
+              src={selectedPokemon?.imageUrl}
+              alt={selectedPokemon?.name}
+              style={{ width: '150px', borderRadius: '10px' }}
+            />
+            <p>
+              Health: {playerHealth} / {selectedPokemon?.maxHealth}
+            </p>
+            <h4>Choose a move:</h4>
+            <div>
+              {selectedPokemon?.moves.map(move => (
+                <button
+                  key={move.name}
+                  onClick={() => handlePlayerMove(move)}
+                  style={{
+                    margin: '0.5rem',
+                    padding: '0.5rem 1rem',
+                    cursor: 'pointer',
+                    backgroundColor: '#4caf50',
+                    color: 'white',
+                  }}>
+                  {move.name} (Damage: {move.damage})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3>Opponent Pokémon: {computerPokemon?.name}</h3>
+            <img
+              src={computerPokemon?.imageUrl}
+              alt={computerPokemon?.name}
+              style={{ width: '150px', borderRadius: '10px' }}
+            />
+            <p>
+              Health: {computerHealth} / {computerPokemon?.maxHealth}
+            </p>
+          </div>
+        </div>
+      {battleLog.length > 0 && (
+        <div
+          style={{
+            marginTop: '2rem',
+            padding: '1rem',
+            border: '1px solid #ccc',
+            borderRadius: '10px',
+            maxWidth: '600px',
+            margin: 'auto',
+          }}>
+          <h3>Battle History</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {battleLog.map((log, index) => (
+              <li key={index} style={{ marginBottom: '0.5rem' }}>
+                {log}
+              </li>
             ))}
           </ul>
         </div>
