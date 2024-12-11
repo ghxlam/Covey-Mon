@@ -1,18 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from 'react';
-import { Player } from '../../../types/CoveyTownSocket';
 import { useToast } from '@chakra-ui/react';
-   
+
 interface Stat {
   base_stat: number;
   stat: {
     name: string;
-    url: string;
   };
+}
 
 interface Move {
   name: string;
-  damage: number;
+  power: number | null;
 }
 
 interface Pokemon {
@@ -23,7 +22,7 @@ interface Pokemon {
   health: number;
   attack: number;
   defense: number;
-  moves: { name: string; power: number | null }[];
+  moves: Move[];
   maxHealth: number;
 }
 
@@ -40,7 +39,7 @@ const getPokemon = async (): Promise<Pokemon[]> => {
       try {
         const moveResponse = await fetch(`https://pokeapi.co/api/v2/move/${moveName}`);
         const moveData = await moveResponse.json();
-        return moveData.power !== null ? moveData.power : null;
+        return moveData.power || null;
       } catch (error) {
         console.error('Error fetching move data:', error);
         return null;
@@ -48,12 +47,12 @@ const getPokemon = async (): Promise<Pokemon[]> => {
     };
 
     // Loop through each Pokémon in the Kanto region
-    for (let i = 0; i < pokemonList.length; i++) {
-      const pokemonName = pokemonList[i].pokemon_species.name;
+    for (const entry of pokemonList) {
+      const pokemonName = entry.pokemon_species.name;
       const pokemonDataResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
-      const pokemon = await pokemonDataResponse.json();
+      const pokemonData = await pokemonDataResponse.json();
 
-      const stats = pokemon.stats.reduce(
+      const stats = pokemonData.stats.reduce(
         (acc: { health: number; attack: number; defense: number }, stat: Stat) => {
           if (stat.stat.name === 'hp') {
             acc.health = stat.base_stat;
@@ -67,32 +66,28 @@ const getPokemon = async (): Promise<Pokemon[]> => {
         { health: 0, attack: 0, defense: 0 },
       );
 
-      const sprite = pokemon.sprites.front_default; // Default front facing image
-
-      const moves = pokemon.moves.map((move: { move: { name: string } }) => move.move.name);
-
-      const pickedMoves = [];
-      for (let j = 0; j < 4; j++) {
-        const moveName = moves[Math.floor(Math.random() * moves.length)];
-        const movePower = await getMovePower(moveName);
-        pickedMoves.push({ name: moveName, power: movePower });
-      }
+      const sprite = pokemonData.sprites.front_default; // Default front facing image
+      const moves = pokemonData.moves.slice(0, 4).map(async (move: { move: { name: string } }) => ({
+        name: move.move.name,
+        power: await getMovePower(move.move.name),
+      }));
 
       allPokemon.push({
-        id: i,
-        name: pokemon.name,
+        id: entry.entry_number,
+        name: pokemonData.name,
+        sprite: sprite,
+        currHealth: stats.health,
+        health: stats.health,
+        maxHealth: stats.health,
         attack: stats.attack,
         defense: stats.defense,
-        currHealth: Math.floor(Math.random() * stats.health + 1),
-        health: stats.health,
-        sprite: sprite,
-        moves: pickedMoves,
+        moves: await Promise.all(moves),
       });
     }
 
     return allPokemon;
   } catch (error) {
-    console.error('Error fetching data from PokeAPI:', error);
+    console.error('Error fetching Pokémon data:', error);
     return [];
   }
 };
@@ -109,55 +104,28 @@ const getPokemon = async (): Promise<Pokemon[]> => {
 const ParentComponent: React.FC = () => {
   const toast = useToast();
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
-  let bot: Pokemon; // bot assigned pokemon
-  const [availablePokemons] = useState<Pokemon[]>([]);
-  getPokemon().then(allPokemon => {
-    allPokemon.forEach(function (pokemon) {
-      availablePokemons.push(pokemon);
-    });
-    bot = availablePokemons[Math.floor(Math.random() * availablePokemons.length + 1)]; // got get randomly assigned pokemon
-  });
-
-  /* Placeholder data FOR NOW. Replace this with API integration whenever we figure out whats wrong. */
-  /*{
-      id: 1,
-      name: 'Pikachu',
-      sprite: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png',
-      health: 100,
-      attack: 50,
-      defense: 70,
-      imageUrl: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png',
-      health: 100,
-      maxHealth: 100,
-      moves: [
-        { name: 'Thunder Shock', damage: 20 },
-        { name: 'Quick Attack', damage: 15 },
-        { name: 'Iron Tail', damage: 25 },
-        { name: 'Electro Ball', damage: 30 },
-      ],
-    },
-    {
-      id: 2,
-      name: 'Charizard',
-      sprite: 'https://assets.pokemon.com/assets/cms2/img/pokedex/full/006.png',
-      health: 150,
-      attack: 50,
-      defense: 70,
-      moves: ['Flamethrower', 'Dragon Claw', 'Fly', 'Fire Spin'],
-    },*/
-
+  const [availablePokemons, setAvailablePokemons] = useState<Pokemon[]>([]);
   const [computerPokemon, setComputerPokemon] = useState<Pokemon | null>(null);
   const [playerHealth, setPlayerHealth] = useState<number>(0);
   const [computerHealth, setComputerHealth] = useState<number>(0);
   const [isBattleStarted, setIsBattleStarted] = useState<boolean>(false);
   const [battleLog, setBattleLog] = useState<string[]>([]);
 
+  useEffect(() => {
+    // Fetch Pokémon when the component mounts
+    const fetchPokemon = async () => {
+      const allPokemon = await getPokemon();
+      setAvailablePokemons(allPokemon);
+    };
+    fetchPokemon();
+  }, []);
+
   const handleSelectPokemon = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
   };
 
   const handleStartBattle = () => {
-    if (selectedPokemon) {
+    if (selectedPokemon && availablePokemons.length > 0) {
       const randomPokemon = availablePokemons[Math.floor(Math.random() * availablePokemons.length)];
       setComputerPokemon(randomPokemon);
       setPlayerHealth(selectedPokemon.maxHealth);
@@ -187,11 +155,12 @@ const ParentComponent: React.FC = () => {
     if (!computerPokemon || !selectedPokemon || playerHealth <= 0 || computerHealth <= 0) return;
 
     // Player's attack
-    const newComputerHealth = Math.max(computerHealth - move.damage, 0);
+    const damage = move.power || 0;
+    const newComputerHealth = Math.max(computerHealth - damage, 0);
     setComputerHealth(newComputerHealth);
     setBattleLog(prev => [
       ...prev,
-      `${selectedPokemon.name} used ${move.name}! It dealt ${move.damage} damage.`,
+      `${selectedPokemon.name} used ${move.name}! It dealt ${damage} damage.`,
     ]);
 
     if (newComputerHealth > 0) {
@@ -199,11 +168,12 @@ const ParentComponent: React.FC = () => {
       const computerMove =
         computerPokemon.moves[Math.floor(Math.random() * computerPokemon.moves.length)];
       setTimeout(() => {
-        const newPlayerHealth = Math.max(playerHealth - computerMove.damage, 0);
+        const computerDamage = computerMove.power || 0;
+        const newPlayerHealth = Math.max(playerHealth - computerDamage, 0);
         setPlayerHealth(newPlayerHealth);
         setBattleLog(prev => [
           ...prev,
-          `${computerPokemon.name} used ${computerMove.name}! It dealt ${computerMove.damage} damage.`,
+          `${computerPokemon.name} used ${computerMove.name}! It dealt ${computerDamage} damage.`,
         ]);
       }, 1000);
     }
@@ -211,10 +181,7 @@ const ParentComponent: React.FC = () => {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#4A90E2' }}>IN PROGRESS</h1>
-      <div>
-        <h2>Players in the Game:</h2>
-      </div>
+      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#4A90E2' }}>Pokemon Game</h1>
       <div style={{ marginTop: '2rem' }}>
         <h2>Available Pokémon:</h2>
         <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem' }}>
@@ -237,43 +204,23 @@ const ParentComponent: React.FC = () => {
                 style={{ width: '100%', borderRadius: '10px' }}
               />
               <h3>{pokemon.name}</h3>
-              <div
-                key={pokemon.id}
-                style={{
-                  border: '1px solid #ccc',
-                  borderRadius: '10px',
-                  padding: '1rem',
-                  width: '200px',
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  backgroundColor: selectedPokemon?.id === pokemon.id ? '#d0f0c0' : 'white',
-                }}
-                onClick={() => handleSelectPokemon(pokemon)}>
-                <img
-                  src={pokemon.imageUrl}
-                  alt={pokemon.name}
-                  style={{ width: '100%', borderRadius: '10px' }}
-                />
-                <h3>{pokemon.name}</h3>
-              </div>
-            ))}
-          </div>
-          {selectedPokemon && (
-            <button
-              onClick={handleStartBattle}
-              style={{ marginTop: '1rem', padding: '1rem', fontSize: '1.2rem', cursor: 'pointer' }}>
-              Start Battle
-            </button>
-          )}
+            </div>
+          ))}
         </div>
-      )}
-
+        {selectedPokemon && (
+          <button
+            onClick={handleStartBattle}
+            style={{ marginTop: '1rem', padding: '1rem', fontSize: '1.2rem', cursor: 'pointer' }}>
+            Start Battle
+          </button>
+        )}
+      </div>
       {isBattleStarted && (
         <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '2rem' }}>
           <div>
             <h3>Your Pokémon: {selectedPokemon?.name}</h3>
             <img
-              src={selectedPokemon?.imageUrl}
+              src={selectedPokemon?.sprite}
               alt={selectedPokemon?.name}
               style={{ width: '150px', borderRadius: '10px' }}
             />
@@ -293,7 +240,7 @@ const ParentComponent: React.FC = () => {
                     backgroundColor: '#4caf50',
                     color: 'white',
                   }}>
-                  {move.name} (Damage: {move.damage})
+                  {move.name} (Damage: {move.power})
                 </button>
               ))}
             </div>
@@ -302,7 +249,7 @@ const ParentComponent: React.FC = () => {
           <div>
             <h3>Opponent Pokémon: {computerPokemon?.name}</h3>
             <img
-              src={computerPokemon?.imageUrl}
+              src={computerPokemon?.sprite}
               alt={computerPokemon?.name}
               style={{ width: '150px', borderRadius: '10px' }}
             />
@@ -311,6 +258,7 @@ const ParentComponent: React.FC = () => {
             </p>
           </div>
         </div>
+      )}
       {battleLog.length > 0 && (
         <div
           style={{
