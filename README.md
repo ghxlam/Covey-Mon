@@ -12,6 +12,9 @@ The frontend implements video chat using the [Twilio Programmable Video](https:/
 
 A backend service (in the `townService` directory) implements the application logic: tracking which "towns" are available to be joined, and the state of each of those towns.
 
+## Demonstration of Basic Project Functionality
+<img src='https://i.imgur.com/xc5aKQa.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+
 ## Running this app locally
 
 Running the application locally entails running both the backend service and a frontend.
